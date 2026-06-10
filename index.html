@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kas Peleton A - Keuangan</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-slate-100 font-sans min-h-screen py-8 px-4 relative">
+
+    <div id="loading" class="fixed inset-0 bg-slate-900/50 flex items-center justify-center z-50">
+        <div class="bg-white p-5 rounded-xl shadow-lg flex flex-col items-center gap-3">
+            <div class="animate-spin rounded-full h-10 w-10 border-4 border-indigo-600 border-t-transparent"></div>
+            <p class="text-sm font-bold text-slate-700">Sinkronisasi Cloud Database...</p>
+        </div>
+    </div>
+
+    <div id="pin-modal"
+        class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4 transition-all duration-300">
+        <div
+            class="bg-white rounded-2xl shadow-2xl border border-slate-100 w-full max-w-md transform scale-95 transition-transform duration-300 p-6">
+            <div class="flex flex-col items-center text-center">
+                <div class="bg-indigo-50 p-3 rounded-full text-indigo-600 mb-3 text-2xl shadow-inner">🔒</div>
+                <h3 class="text-lg font-black text-slate-800">Otorisasi Bendahara</h3>
+                <p class="text-xs text-gray-500 mt-1 max-w-xs">Fitur ini terbatas. Masukkan PIN keamanan untuk
+                    memperbarui cloud database.</p>
+
+                <div class="w-full mt-4">
+                    <input type="password" id="input-pin-custom" placeholder="••••" maxlength="6" inputmode="numeric"
+                        class="w-full text-center text-2xl p-3 border-2 border-slate-200 rounded-xl focus:outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 transition tracking-[0.5em] font-black bg-slate-50">
+                    <p id="pin-error-msg" class="text-rose-600 text-xs font-bold mt-1.5 hidden">❌ PIN Salah! Akses
+                        Ditolak.</p>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3 w-full mt-5">
+                    <button type="button" onclick="tutupPinModal()"
+                        class="p-2.5 border border-slate-200 hover:bg-slate-50 text-slate-600 text-xs font-bold rounded-xl transition">Batal</button>
+                    <button type="button" onclick="submitPinOtorisasi()"
+                        class="p-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl transition shadow-md shadow-indigo-200">Verifikasi</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="max-w-7xl mx-auto bg-white rounded-xl shadow-lg p-6">
+        <div class="flex flex-col md:flex-row justify-between items-center mb-6 border-b pb-4 gap-4">
+            <div class="text-center md:text-left">
+                <h1 class="text-3xl font-extrabold text-slate-800">💰 Kas Peleton A</h1>
+                <!-- <p class="text-gray-500 mt-1">Sistem Manajemen Transaksi & Denda Keuangan</p> -->
+            </div>
+            <a href="video.html"
+                class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs px-4 py-2.5 rounded-xl shadow transition flex items-center gap-2">
+                <span>🎬 Buka Setoran Video</span> ➡️
+            </a>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            <div class="bg-amber-50 border border-amber-200 p-4 rounded-xl shadow-sm">
+                <p class="text-xs uppercase tracking-wider text-amber-600 font-bold">💰 Total Kas Harian</p>
+                <p id="stat-kas-harian" class="text-2xl font-black text-amber-700 mt-1">Rp 0</p>
+            </div>
+            <div class="bg-emerald-50 border border-emerald-200 p-4 rounded-xl shadow-sm">
+                <p class="text-xs uppercase tracking-wider text-emerald-600 font-bold">📅 Total Kas Mingguan</p>
+                <p id="stat-kas-mingguan" class="text-2xl font-black text-emerald-700 mt-1">Rp 0</p>
+            </div>
+            <div class="bg-rose-50 border border-rose-200 p-4 rounded-xl shadow-sm">
+                <p class="text-xs uppercase tracking-wider text-rose-600 font-bold">⚠️ Total Denda</p>
+                <p id="stat-denda" class="text-2xl font-black text-rose-700 mt-1">Rp 0</p>
+            </div>
+            <div class="bg-slate-50 border border-slate-200 p-4 rounded-xl shadow-sm">
+                <p class="text-xs uppercase tracking-wider text-slate-600 font-bold">👤 Anggota Nunggak</p>
+                <p id="stat-tunggakan" class="text-2xl font-black text-slate-700 mt-1">0 Orang</p>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+            <div class="lg:col-span-4 bg-slate-50 p-4 rounded-xl border border-slate-200 h-fit">
+                <h2 class="text-xs font-bold text-slate-700 mb-3 uppercase tracking-wider">👤 1. Daftar Anggota</h2>
+                <form id="form-anggota" class="flex gap-2 mb-4">
+                    <input type="text" id="nama-baru" placeholder="Nama baru..." required
+                        class="flex-1 p-2 text-xs border rounded-lg focus:ring-2 focus:ring-indigo-500 bg-white">
+                    <button type="submit"
+                        class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold px-3 py-2 rounded-lg transition">Tambah</button>
+                </form>
+                <div class="max-h-40 overflow-y-auto border border-slate-200 rounded-lg bg-white divide-y divide-slate-100 mb-4"
+                    id="list-anggota-master"></div>
+
+                <div class="border-t pt-3">
+                    <h3 class="text-xs font-bold text-rose-600 uppercase tracking-wider mb-2 flex items-center gap-1">🔴
+                        Daftar Tunggakan per Kategori</h3>
+                    <div class="max-h-80 overflow-y-auto space-y-3" id="list-belum-bayar-container"></div>
+                </div>
+            </div>
+
+            <div class="lg:col-span-4 bg-slate-50 p-4 rounded-xl border border-slate-200 h-fit">
+                <h2 class="text-xs font-bold text-slate-700 mb-3 uppercase tracking-wider">💰 2. Input Kas
+                    </h2>
+                <form id="form-setor-massal" class="space-y-4">
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-600 uppercase mb-1">Jenis Kas /
+                            Kategori</label>
+                        <select id="massal-kategori"
+                            class="w-full p-2 text-sm border rounded-lg bg-white font-bold text-slate-800 focus:ring-2 focus:ring-indigo-500">
+                            <option value="Kas Harian">Kas Harian Peleton</option>
+                            <option value="Kas Mingguan">Kas Mingguan Peleton</option>
+                            <option value="Denda Ga Setoran">Denda Tak Setoran</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-600 uppercase mb-1.5">Pilih Nominal
+                            Kas</label>
+                        <div class="grid grid-cols-3 gap-2">
+                            <label
+                                class="flex items-center justify-center gap-1.5 p-2.5 bg-white border border-slate-200 rounded-lg cursor-pointer hover:bg-slate-50 font-bold text-slate-700 text-xs shadow-sm transition">
+                                <input type="radio" name="nominal-pilihan" value="2000" checked
+                                    onchange="toggleNominalManual()" class="w-4 h-4 text-indigo-600">
+                                <span>Rp 2.000</span>
+                            </label>
+                            <label
+                                class="flex items-center justify-center gap-1.5 p-2.5 bg-white border border-slate-200 rounded-lg cursor-pointer hover:bg-slate-50 font-bold text-slate-700 text-xs shadow-sm transition">
+                                <input type="radio" name="nominal-pilihan" value="5000" onchange="toggleNominalManual()"
+                                    class="w-4 h-4 text-indigo-600">
+                                <span>Rp 5.000</span>
+                            </label>
+                            <label
+                                class="flex items-center justify-center gap-1.5 p-2.5 bg-white border border-slate-200 rounded-lg cursor-pointer hover:bg-slate-50 font-bold text-slate-700 text-xs shadow-sm transition">
+                                <input type="radio" name="nominal-pilihan" value="manual"
+                                    onchange="toggleNominalManual()" class="w-4 h-4 text-indigo-600">
+                                <span>Manual</span>
+                            </label>
+                        </div>
+                        <input type="number" id="massal-nominal-manual"
+                            placeholder="Ketik nominal uang saja (Contoh: 10000)"
+                            class="w-full p-2 text-sm border rounded-lg bg-white border-slate-300 font-bold text-slate-800 mt-2 hidden focus:ring-2 focus:ring-indigo-500">
+                    </div>
+
+                    <div>
+                        <div class="flex justify-between items-center mb-1">
+                            <label class="block text-[11px] font-bold text-slate-600 uppercase">Tanggal Pembayaran
+                                Kas</label>
+                            <div class="flex bg-slate-200 p-0.5 rounded-md text-[10px] font-bold">
+                                <button type="button" id="btn-tgl-auto" onclick="setModeTanggal('auto')"
+                                    class="px-2 py-0.5 rounded bg-white text-indigo-600 shadow-sm transition">Otomatis</button>
+                                <button type="button" id="btn-tgl-manual" onclick="setModeTanggal('manual')"
+                                    class="px-2 py-0.5 rounded text-slate-600 transition">Manual</button>
+                            </div>
+                        </div>
+                        <input type="text" id="massal-keterangan" readonly
+                            class="w-full p-2 text-sm border rounded-lg bg-emerald-50 text-emerald-800 font-bold border-emerald-200 cursor-not-allowed">
+                        <input type="date" id="massal-tanggal-manual"
+                            class="w-full p-2 text-sm border rounded-lg bg-white border-slate-300 font-bold text-slate-800 hidden focus:ring-2 focus:ring-indigo-500">
+                    </div>
+
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-600 uppercase mb-1 flex justify-between">
+                            <span>Centang Yang Bayar:</span>
+                            <div class="flex gap-2">
+                                <button type="button" onclick="centangSemua(true)"
+                                    class="text-indigo-600 hover:underline text-[10px]">Semua</button>
+                                <button type="button" onclick="centangSemua(false)"
+                                    class="text-slate-500 hover:underline text-[10px]">Clear</button>
+                            </div>
+                        </label>
+                        <div class="border border-slate-200 rounded-lg p-2 bg-white max-h-48 overflow-y-auto space-y-1.5"
+                            id="checklist-anak-container"></div>
+                        <p class="text-[10px] text-amber-600 font-medium mt-1">⚠️ Anak yang tidak dicentang otomatis
+                            terhitung menunggak.</p>
+                    </div>
+                    <button type="submit"
+                        class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold p-2.5 rounded-lg text-sm transition shadow">🚀
+                        Kirim Data Ke Cloud</button>
+                </form>
+            </div>
+
+            <div class="lg:col-span-4 bg-white p-4 rounded-xl border border-slate-200">
+                <div class="flex justify-between items-center mb-3">
+                    <h2 class="text-xs font-bold text-slate-700 uppercase tracking-wider">📜 3. Log Aktivitas Kas</h2>
+                    <button onclick="muatDataDariCloud()"
+                        class="text-[10px] text-indigo-600 hover:underline font-bold flex items-center gap-1">🔄 Refresh
+                        Cloud</button>
+                </div>
+                <div class="space-y-2 max-h-[550px] overflow-y-auto pr-1" id="log-container"></div>
+                <p id="log-kosong" class="text-center text-slate-400 italic text-xs my-6">Belum ada riwayat setoran.</p>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        const API_URL = "https://script.google.com/macros/s/AKfycbyy3wD0MyH8Va2FSS_4rgBieNeNxwJo-tZuP1ZkoRfU9894zh7dRYItlxYQ3F6gIPZhKw/exec";
+        const PIN_BENDAHARA = "150828";
+
+        let masterAnggota = [];
+        let riwayatKas = [];
+        let modeTanggal = 'auto';
+        let aksiTertundaBendahara = null;
+
+        function tampilkanLoading(show) {
+            document.getElementById('loading').style.display = show ? 'flex' : 'none';
+        }
+
+        function formatRupiah(angka) {
+            return 'Rp ' + angka.toLocaleString('id-ID');
+        }
+
+        // FUNGSI BARU: MENANGGAPI PERUBAHAN RADIO BUTTON NOMINAL
+        function toggleNominalManual() {
+            const pilihan = document.querySelector('input[name="nominal-pilihan"]:checked').value;
+            const inputManual = document.getElementById('massal-nominal-manual');
+            if (pilihan === 'manual') {
+                inputManual.classList.remove('hidden');
+                inputManual.focus();
+            } else {
+                inputManual.classList.add('hidden');
+                inputManual.value = '';
+            }
+        }
+
+        function setModeTanggal(mode) {
+            modeTanggal = mode;
+            const btnAuto = document.getElementById('btn-tgl-auto');
+            const btnManual = document.getElementById('btn-tgl-manual');
+            const inputAuto = document.getElementById('massal-keterangan');
+            const inputManual = document.getElementById('massal-tanggal-manual');
+
+            if (mode === 'auto') {
+                btnAuto.className = "px-2 py-0.5 rounded bg-white text-indigo-600 shadow-sm transition";
+                btnManual.className = "px-2 py-0.5 rounded text-slate-600 transition";
+                inputAuto.classList.remove('hidden');
+                inputManual.classList.add('hidden');
+                aturTampilanTanggalSistem();
+            } else {
+                btnAuto.className = "px-2 py-0.5 rounded text-slate-600 transition";
+                btnManual.className = "px-2 py-0.5 rounded bg-white text-indigo-600 shadow-sm transition";
+                inputAuto.classList.add('hidden');
+                inputManual.classList.remove('hidden');
+                inputManual.value = new Date().toISOString().split('T')[0];
+            }
+        }
+
+        function konversiTanggalManualKeTeks(dateString) {
+            if (!dateString) return "-";
+            const komponen = dateString.split('-');
+            const objekTanggal = new Date(komponen[0], komponen[1] - 1, komponen[2]);
+            return objekTanggal.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+        }
+
+        function dapatkanWaktuLengkap() {
+            const sekarang = new Date();
+            const tanggalFormat = sekarang.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+            const jamFormat = `${String(sekarang.getHours()).padStart(2, '0')}:${String(sekarang.getMinutes()).padStart(2, '0')}`;
+            return `${tanggalFormat} | Jam ${jamFormat}`;
+        }
+
+        function aturTampilanTanggalSistem() {
+            const sekarang = new Date();
+            document.getElementById('massal-keterangan').value = Bird = sekarang.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+        }
+
+        function panggilPinModal(callbackAksi) {
+            aksiTertundaBendahara = callbackAksi;
+            const modal = document.getElementById('pin-modal');
+            const inputPin = document.getElementById('input-pin-custom');
+            inputPin.value = '';
+            document.getElementById('pin-error-msg').classList.add('hidden');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            inputPin.focus();
+        }
+
+        function tutupPinModal() {
+            document.getElementById('pin-modal').classList.add('hidden');
+            aksiTertundaBendahara = null;
+        }
+
+        function submitPinOtorisasi() {
+            const inputPin = document.getElementById('input-pin-custom').value;
+            if (String(inputPin).trim() === String(PIN_BENDAHARA).trim()) {
+                if (typeof aksiTertundaBendahara === 'function') aksiTertundaBendahara();
+                tutupPinModal();
+            } else {
+                document.getElementById('pin-error-msg').classList.remove('hidden');
+                document.getElementById('input-pin-custom').value = '';
+                document.getElementById('input-pin-custom').focus();
+            }
+        }
+
+        document.getElementById('input-pin-custom').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') submitPinOtorisasi();
+        });
+
+        async function muatDataDariCloud() {
+            tampilkanLoading(true);
+            try {
+                let response = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ aksi: 'ambilData' }) });
+                let data = await response.json();
+                masterAnggota = data.anggota || [];
+                riwayatKas = data.riwayat || [];
+                renderAplikasi();
+                aturTampilanTanggalSistem();
+            } catch (err) {
+                alert("❌ Gagal mengambil data dari cloud database!");
+            }
+            tampilkanLoading(false);
+        }
+
+        function renderAplikasi() {
+            const listAnggotaMaster = document.getElementById('list-anggota-master');
+            const checklistAnakContainer = document.getElementById('checklist-anak-container');
+            listAnggotaMaster.innerHTML = '';
+            checklistAnakContainer.innerHTML = '';
+
+            masterAnggota.forEach((nama) => {
+                if (!nama) return;
+                const item = document.createElement('div');
+                item.className = "p-1.5 text-xs text-slate-700 font-medium";
+                item.textContent = nama;
+                listAnggotaMaster.appendChild(item);
+
+                const itemCheck = document.createElement('label');
+                itemCheck.className = "flex items-center gap-2 p-1 rounded hover:bg-slate-50 cursor-pointer text-xs font-medium text-slate-700";
+                itemCheck.innerHTML = `<input type="checkbox" value="${nama}" class="checkbox-anak rounded border-gray-300 text-indigo-600 w-3.5 h-3.5"><span>${nama}</span>`;
+                checklistAnakContainer.appendChild(itemCheck);
+            });
+
+            const logContainer = document.getElementById('log-container');
+            const belumBayarContainer = document.getElementById('list-belum-bayar-container');
+            logContainer.innerHTML = '';
+            belumBayarContainer.innerHTML = '';
+
+            let totalHarian = 0, totalMingguan = 0, totalDenda = 0, jumlahOrangNunggak = 0;
+            let petaTunggakan = {};
+
+            document.getElementById('log-kosong').style.display = riwayatKas.length === 0 ? 'block' : 'none';
+
+            riwayatKas.forEach((log) => {
+                if (!['Kas Harian', 'Kas Mingguan', 'Denda Ga Setoran'].includes(log.kategori)) return;
+
+                if (log.status === 'Lunas') {
+                    if (log.kategori === 'Kas Harian') totalHarian += log.nominal;
+                    if (log.kategori === 'Kas Mingguan') totalMingguan += log.nominal;
+                    if (log.kategori === 'Denda Ga Setoran') totalDenda += log.nominal;
+                } else if (log.status === 'Belum Bayar') {
+                    if (!petaTunggakan[log.nama]) petaTunggakan[log.nama] = {};
+                    if (!petaTunggakan[log.nama][log.kategori]) petaTunggakan[log.nama][log.kategori] = { kali: 0, totalNominal: 0 };
+                    petaTunggakan[log.nama][log.kategori].kali += 1;
+                    petaTunggakan[log.nama][log.kategori].totalNominal += log.nominal;
+                }
+
+                const cardLog = document.createElement('div');
+                cardLog.className = `p-2.5 rounded-lg border text-xs shadow-sm ${log.status === 'Belum Bayar' ? 'bg-rose-50/50 border-rose-100' : 'bg-slate-50 border-slate-200'}`;
+                const badgeStatus = log.status === 'Belum Bayar' ? `<span class="bg-rose-100 text-rose-700 text-[9px] font-bold px-1.5 py-0.5 rounded">Belum Bayar</span>` : `<span class="bg-emerald-100 text-emerald-700 text-[9px] font-bold px-1.5 py-0.5 rounded">Lunas</span>`;
+
+                cardLog.innerHTML = `
+                    <div class="flex justify-between text-[10px] text-slate-500 font-semibold font-mono mb-1"><span>📅 ${log.keterangan || log.waktu}</span><span class="font-bold text-indigo-600">${log.kategori}</span></div>
+                    <div class="flex justify-between items-center"><div class="font-bold text-sm text-slate-800">${log.nama}</div>${badgeStatus}</div>
+                    <div class="flex justify-between items-center mt-1 pt-1 border-t border-dashed border-slate-200"><span class="text-slate-400 text-[10px] font-mono">Input: ${log.waktu}</span><span class="font-bold text-slate-700 text-xs">${formatRupiah(log.nominal)}</span></div>
+                `;
+                logContainer.appendChild(cardLog);
+            });
+
+            for (let namaAnak in petaTunggakan) {
+                jumlahOrangNunggak++;
+                const divNunggak = document.createElement('div');
+                divNunggak.className = "p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs shadow-sm";
+                let htmlKontenKategori = '', grandTotalUtang = 0;
+
+                for (let katKas in petaTunggakan[namaAnak]) {
+                    let infoKat = petaTunggakan[namaAnak][katKas];
+                    grandTotalUtang += infoKat.totalNominal;
+                    htmlKontenKategori += `<div class="flex justify-between items-center bg-white/60 px-2 py-1 rounded border border-rose-100/50"><span class="font-medium text-slate-700">${katKas} <span class="text-rose-600 font-bold">(${infoKat.kali}x)</span></span><span class="font-bold text-rose-700">${formatRupiah(infoKat.totalNominal)}</span></div>`;
+                }
+
+                divNunggak.innerHTML = `<div class="flex justify-between items-center border-b border-rose-200/60 pb-1.5 mb-2"><span class="font-bold text-sm text-rose-900">👤 ${namaAnak}</span><span class="text-[10px] font-black bg-rose-600 text-white px-2 py-0.5 rounded-full">Total: ${formatRupiah(grandTotalUtang)}</span></div><div class="space-y-1.5">${htmlKontenKategori}</div>`;
+                belumBayarContainer.appendChild(divNunggak);
+            }
+
+            if (jumlahOrangNunggak === 0) {
+                belumBayarContainer.innerHTML = `<p class="text-center text-slate-400 italic text-[11px] py-4 bg-emerald-50 text-emerald-700 rounded-lg border border-emerald-200">✨ Semua aman, semua lunas!</p>`;
+            }
+
+            document.getElementById('stat-kas-harian').textContent = formatRupiah(totalHarian);
+            document.getElementById('stat-kas-mingguan').textContent = formatRupiah(totalMingguan);
+            document.getElementById('stat-denda').textContent = formatRupiah(totalDenda);
+            document.getElementById('stat-tunggakan').textContent = `${jumlahOrangNunggak} Orang`;
+        }
+
+        document.getElementById('form-anggota').addEventListener('submit', function (e) {
+            e.preventDefault();
+            const inputNama = document.getElementById('nama-baru');
+            const nama = inputNama.value.trim();
+            if (!nama) return;
+
+            panggilPinModal(async function () {
+                tampilkanLoading(true);
+                try {
+                    let response = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ aksi: 'tambahAnggota', nama: nama }) });
+                    inputNama.value = '';
+                    await muatDataDariCloud();
+                } catch (error) { alert("❌ Gagal mengirim anggota baru!"); }
+                finally { tampilkanLoading(false); }
+            });
+        });
+
+        document.getElementById('form-setor-massal').addEventListener('submit', function (e) {
+            e.preventDefault();
+            if (masterAnggota.length === 0) { alert("Isi daftar anggota dulu bro!"); return; }
+
+            panggilPinModal(async function () {
+                tampilkanLoading(true);
+                try {
+                    // MODIFIKASI LOGIKA: CEK APAKAH PILIHANNYA NOMINAL MANUAL ATAU RADIO BIASA
+                    const nominalPilihan = document.querySelector('input[name="nominal-pilihan"]:checked').value;
+                    let nominal;
+
+                    if (nominalPilihan === 'manual') {
+                        nominal = parseInt(document.getElementById('massal-nominal-manual').value);
+                        if (!nominal || nominal <= 0) {
+                            alert("⚠️ Harap masukkan angka nominal manual yang valid!");
+                            tampilkanLoading(false);
+                            return;
+                        }
+                    } else {
+                        nominal = parseInt(nominalPilihan);
+                    }
+
+                    const kategori = document.getElementById('massal-kategori').value;
+                    let tanggalFinalTeks = modeTanggal === 'auto' ? document.getElementById('massal-keterangan').value : konversiTanggalManualKeTeks(document.getElementById('massal-tanggal-manual').value);
+                    const waktuAkuratSistem = dapatkanWaktuLengkap();
+
+                    const checkboxes = document.querySelectorAll('.checkbox-anak:checked');
+                    let daftarNamaLunas = [];
+                    checkboxes.forEach(cb => daftarNamaLunas.push(cb.value));
+
+                    let dataSetoranGlobal = [];
+                    masterAnggota.forEach(nama => {
+                        if (!nama) return;
+                        let status = daftarNamaLunas.includes(nama) ? 'Lunas' : 'Belum Bayar';
+                        dataSetoranGlobal.push({ waktu: waktuAkuratSistem, nama: nama, kategori: kategori, nominal: nominal, keterangan: tanggalFinalTeks, status: status });
+                    });
+
+                    await fetch(API_URL, { method: 'POST', body: JSON.stringify({ aksi: 'setorMassal', data: dataSetoranGlobal }) });
+                    centangSemua(false);
+
+                    // Reset Pilihan ke default Rp 2.000 setelah sukses kirim data
+                    document.querySelector('input[name="nominal-pilihan"][value="2000"]').checked = true;
+                    toggleNominalManual();
+
+                    setModeTanggal('auto');
+                    await muatDataDariCloud();
+                    alert("🔒 Otorisasi Sukses: Data kas berhasil disimpan ke cloud database!");
+                } catch (error) { alert("❌ Gagal menyimpan data!"); }
+                finally { tampilkanLoading(false); }
+            });
+        });
+
+        function centangSemua(status) {
+            document.querySelectorAll('.checkbox-anak').forEach(cb => cb.checked = status);
+        }
+
+        muatDataDariCloud();
+    </script>
+</body>
+
+</html>
