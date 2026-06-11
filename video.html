@@ -6,85 +6,135 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kas Peleton A - Setoran Video</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Icons+Round" rel="stylesheet">
+    <style>
+        /* Integrasi font Google Icons agar sejajar sempurna dengan teks */
+        .material-icons-round {
+            vertical-align: middle;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Custom scrollbar halus untuk rekap dan log */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
 </head>
 
-<body class="bg-slate-100 font-sans min-h-screen py-8 px-4 relative">
+<body class="bg-slate-100 font-sans min-h-screen py-8 px-4 relative antialiased text-slate-800">
 
-    <div id="loading" class="fixed inset-0 bg-slate-900/50 flex items-center justify-center z-50">
-        <div class="bg-white p-5 rounded-xl shadow-lg flex flex-col items-center gap-3">
-            <div class="animate-spin rounded-full h-10 w-10 border-4 border-indigo-600 border-t-transparent"></div>
-            <p class="text-sm font-bold text-slate-700">Sinkronisasi Cloud Database...</p>
+    <div id="loading"
+        class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-50 transition-all duration-300">
+        <div class="bg-white p-6 rounded-2xl shadow-2xl flex flex-col items-center gap-3 border border-slate-100">
+            <div class="animate-spin rounded-full h-9 w-9 border-4 border-indigo-600 border-t-transparent"></div>
+            <p class="text-xs font-bold text-slate-600 tracking-wider uppercase">Sinkronisasi Cloud...</p>
         </div>
     </div>
 
     <div id="pin-modal"
         class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4 transition-all duration-300">
         <div
-            class="bg-white rounded-2xl shadow-2xl border border-slate-100 w-full max-w-md transform scale-95 transition-transform duration-300 p-6">
+            class="bg-white rounded-2xl shadow-2xl border border-slate-100 w-full max-w-sm transform scale-95 transition-all duration-300 p-6">
             <div class="flex flex-col items-center text-center">
-                <div class="bg-indigo-50 p-3 rounded-full text-indigo-600 mb-3 text-2xl shadow-inner">🔒</div>
-                <h3 class="text-lg font-black text-slate-800">Otorisasi Bendahara</h3>
-                <p class="text-xs text-gray-500 mt-1 max-w-xs">Fitur ini terbatas. Masukkan PIN keamanan untuk
-                    memperbarui cloud database.</p>
+                <div
+                    class="bg-indigo-50 p-3 rounded-xl text-indigo-600 mb-3 shadow-sm flex items-center justify-center">
+                    <span class="material-icons-round text-2xl">lock</span>
+                </div>
+                <h3 class="text-base font-black text-slate-800 tracking-tight">Otorisasi Bendahara</h3>
+                <p class="text-[11px] text-slate-400 mt-1 max-w-xs leading-relaxed">Masukkan PIN keamanan untuk
+                    memperbarui database cloud secara massal.</p>
 
                 <div class="w-full mt-4">
                     <input type="password" id="input-pin-custom" placeholder="••••" maxlength="6" inputmode="numeric"
-                        class="w-full text-center text-2xl p-3 border-2 border-slate-200 rounded-xl focus:outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 transition tracking-[0.5em] font-black bg-slate-50">
-                    <p id="pin-error-msg" class="text-rose-600 text-xs font-bold mt-1.5 hidden">❌ PIN Salah! Akses
-                        Ditolak.</p>
+                        class="w-full text-center text-2xl p-3 border border-slate-200 rounded-xl focus:outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-50 transition tracking-[0.5em] font-black bg-slate-50/50">
+                    <p id="pin-error-msg"
+                        class="text-rose-600 text-[11px] font-bold mt-2 flex items-center justify-center gap-1 hidden">
+                        <span class="material-icons-round text-xs">error</span> PIN Salah! Akses Ditolak.
+                    </p>
                 </div>
 
                 <div class="grid grid-cols-2 gap-3 w-full mt-5">
                     <button type="button" onclick="tutupPinModal()"
-                        class="p-2.5 border border-slate-200 hover:bg-slate-50 text-slate-600 text-xs font-bold rounded-xl transition">Batal</button>
+                        class="p-2.5 border border-slate-200 hover:bg-slate-50 text-slate-600 text-xs font-bold rounded-xl transition active:scale-[0.98]">Batal</button>
                     <button type="button" onclick="submitPinOtorisasi()"
-                        class="p-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl transition shadow-md shadow-indigo-200">Verifikasi</button>
+                        class="p-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl transition shadow-md shadow-indigo-100 active:scale-[0.98]">Verifikasi</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="max-w-7xl mx-auto bg-white rounded-xl shadow-lg p-6">
-        <div class="flex flex-col md:flex-row justify-between items-center mb-6 border-b pb-4 gap-4">
-            <div class="text-center md:text-left">
-                <h1 class="text-3xl font-extrabold text-slate-800">🎬 Setoran Video Vafor</h1>
-                <!-- <p class="text-gray-500 mt-1">Sistem Kontrol Pengumpulan & Tracking Tugas Video</p> -->
+    <div class="max-w-7xl mx-auto bg-white rounded-2xl shadow-sm border border-slate-200/60 p-6">
+
+        <div class="flex flex-col sm:flex-row justify-between items-center mb-6 border-b border-slate-100 pb-5 gap-4">
+            <div class="text-center sm:text-left flex items-center gap-3">
+                <div class="p-2.5 bg-indigo-50 rounded-xl text-indigo-600 hidden sm:flex">
+                    <span class="material-icons-round text-2xl">movie</span>
+                </div>
+                <div>
+                    <h1
+                        class="text-2xl font-black text-slate-800 tracking-tight flex items-center gap-2 justify-center sm:justify-start">
+                        Setoran Video Vafor
+                    </h1>
+                    <p class="text-[11px] text-slate-400 mt-0.5 tracking-wide uppercase font-medium">Wajib Bayar</p>
+                </div>
             </div>
             <a href="index.html"
-                class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-4 py-2.5 rounded-xl shadow transition flex items-center gap-2">
-                <span>⬅️</span> <span>Buka Dashboard Kas</span>
+                class="bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs px-4 py-2.5 rounded-xl shadow-sm transition flex items-center gap-2 active:scale-[0.98]">
+                <span class="material-icons-round text-sm">arrow_back</span>
+                <span>Dashboard Kas</span>
             </a>
         </div>
 
-        <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 mb-8 shadow-sm">
+        <div class="bg-slate-50 border border-slate-200/60 rounded-2xl p-4 mb-6 shadow-sm">
             <div class="flex justify-between items-center mb-4 flex-wrap gap-2">
-                <h2 class="text-xs font-black text-slate-700 uppercase tracking-wider flex items-center gap-2">
-                    <span>🎬 Live Monitoring Per-Batch</span>
+                <h2 class="text-[11px] font-black text-slate-600 uppercase tracking-wider flex items-center gap-2">
+                    <span class="material-icons-round text-indigo-600 text-sm">live_tv</span>
+                    <span>Live Monitoring Per-Batch</span>
                     <span id="video-vafor-periode"
-                        class="bg-indigo-100 text-indigo-700 text-[10px] px-2.5 py-0.5 rounded-full font-mono font-bold">Memuat...</span>
+                        class="bg-indigo-100 text-indigo-700 text-[10px] px-2.5 py-0.5 rounded-md font-mono font-bold ml-1">Memuat...</span>
                 </h2>
                 <select id="filter-video-tanggal" onchange="renderAplikasi()"
-                    class="text-xs p-1.5 border border-slate-200 rounded-lg bg-white font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    class="text-xs p-2 border border-slate-200 rounded-xl bg-white font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer shadow-sm">
                     <option value="">-- Pilih Batch --</option>
                 </select>
             </div>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div class="bg-emerald-50/70 border border-emerald-100 rounded-xl p-3 shadow-sm">
-                    <div class="flex justify-between items-center border-b border-emerald-200/60 pb-1.5 mb-2">
-                        <span class="text-xs font-bold text-emerald-800 flex items-center gap-1">✅ Sudah Setoran</span>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="bg-emerald-50/40 border border-emerald-100 rounded-xl p-3 shadow-sm">
+                    <div class="flex justify-between items-center border-b border-emerald-100 pb-2 mb-2">
+                        <span class="text-xs font-bold text-emerald-800 flex items-center gap-1.5">
+                            <span class="material-icons-round text-sm text-emerald-600">check_circle</span>Sudah Setoran
+                        </span>
                         <span id="count-video-sudah"
-                            class="bg-emerald-600 text-white text-[10px] font-black px-2 py-0.5 rounded-full">0
+                            class="bg-emerald-600 text-white text-[10px] font-black px-2.5 py-0.5 rounded-full">0
                             Orang</span>
                     </div>
                     <div id="list-video-sudah"
                         class="flex flex-wrap gap-1.5 max-h-32 overflow-y-auto content-start py-1"></div>
                 </div>
 
-                <div class="bg-rose-50/70 border border-rose-100 rounded-xl p-3 shadow-sm">
-                    <div class="flex justify-between items-center border-b border-rose-200/60 pb-1.5 mb-2">
-                        <span class="text-xs font-bold text-rose-800 flex items-center gap-1">❌ Belum Setoran </span>
+                <div class="bg-rose-50/40 border border-rose-100 rounded-xl p-3 shadow-sm">
+                    <div class="flex justify-between items-center border-b border-rose-100 pb-2 mb-2">
+                        <span class="text-xs font-bold text-rose-800 flex items-center gap-1.5">
+                            <span class="material-icons-round text-sm text-rose-600">hourglass_empty</span>Belum Setoran
+                        </span>
                         <span id="count-video-belum"
-                            class="bg-rose-600 text-white text-[10px] font-black px-2 py-0.5 rounded-full">0
+                            class="bg-rose-600 text-white text-[10px] font-black px-2.5 py-0.5 rounded-full">0
                             Orang</span>
                     </div>
                     <div id="list-video-belum"
@@ -95,86 +145,102 @@
 
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
-            <div class="lg:col-span-4 bg-slate-50 p-4 rounded-xl border border-slate-200 h-fit">
-                <h2 class="text-xs font-bold text-slate-700 mb-3 uppercase tracking-wider">📥 1. Input Data Setoran</h2>
+            <div class="lg:col-span-4 bg-slate-50 p-4 rounded-2xl border border-slate-200/60 h-fit shadow-sm">
+                <h2
+                    class="text-[11px] font-black text-slate-600 mb-4 uppercase tracking-wider flex items-center gap-1.5">
+                    <span class="material-icons-round text-indigo-600 text-sm">add_box</span>1. Input Data Setoran
+                </h2>
                 <form id="form-setor-massal" class="space-y-4">
                     <div>
-                        <label class="block text-[11px] font-bold text-slate-600 uppercase mb-1">Pilih Batch Tugas
-                            Video</label>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wide mb-1.5">Pilih
+                            Batch Tugas Video</label>
                         <select id="massal-kategori"
-                            class="w-full p-2 text-sm border rounded-lg bg-white font-bold text-slate-800 focus:ring-2 focus:ring-indigo-500">
-                            <option value="Video Vafor 1">🎬 Video Vafor 1</option>
-                            <option value="Video Vafor 2">🎬 Video Vafor 2</option>
-                            <option value="Video Vafor 3">🎬 Video Vafor 3</option>
-                            <option value="Video Vafor 4">🎬 Video Vafor 4</option>
+                            class="w-full p-2.5 text-xs border border-slate-200 rounded-xl bg-white font-bold text-slate-800 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                            <option value="Video Vafor 1">Video Vafor 1</option>
+                            <option value="Video Vafor 2">Video Vafor 2</option>
+                            <option value="Video Vafor 3">Video Vafor 3</option>
+                            <option value="Video Vafor 4">Video Vafor 4</option>
                         </select>
                     </div>
 
                     <input type="hidden" name="nominal-pilihan" value="0">
 
                     <div>
-                        <div class="flex justify-between items-center mb-1">
-                            <label class="block text-[11px] font-bold text-slate-600 uppercase">Label
-                                Keterangan/Tanggal</label>
-                            <div class="flex bg-slate-200 p-0.5 rounded-md text-[10px] font-bold">
+                        <div class="flex justify-between items-center mb-1.5">
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wide">Label
+                                Keterangan / Tanggal</label>
+                            <div
+                                class="flex bg-slate-200/70 p-0.5 rounded-lg text-[9px] font-black tracking-wide uppercase">
                                 <button type="button" id="btn-tgl-auto" onclick="setModeTanggal('auto')"
-                                    class="px-2 py-0.5 rounded bg-white text-indigo-600 shadow-sm transition">Otomatis</button>
+                                    class="px-2.5 py-0.5 rounded-md bg-white text-indigo-600 shadow-sm transition">Otomatis</button>
                                 <button type="button" id="btn-tgl-manual" onclick="setModeTanggal('manual')"
-                                    class="px-2 py-0.5 rounded text-slate-600 transition">Manual</button>
+                                    class="px-2.5 py-0.5 rounded-md text-slate-500 transition">Manual</button>
                             </div>
                         </div>
                         <input type="text" id="massal-keterangan" readonly
-                            class="w-full p-2 text-sm border rounded-lg bg-emerald-50 text-emerald-800 font-bold border-emerald-200 cursor-not-allowed">
+                            class="w-full p-2.5 text-xs border rounded-xl bg-emerald-50 text-emerald-800 font-bold border-emerald-100 cursor-not-allowed">
                         <input type="date" id="massal-tanggal-manual"
-                            class="w-full p-2 text-sm border rounded-lg bg-white border-slate-300 font-bold text-slate-800 hidden focus:ring-2 focus:ring-indigo-500">
+                            class="w-full p-2.5 text-xs border rounded-xl bg-white border-slate-200 font-bold text-slate-800 hidden focus:ring-2 focus:ring-indigo-500 focus:outline-none">
                     </div>
 
                     <div>
-                        <label class="block text-[11px] font-bold text-slate-600 uppercase mb-1 flex justify-between">
+                        <label
+                            class="block text-[10px] font-bold text-slate-500 uppercase tracking-wide mb-1.5 flex justify-between">
                             <span>Centang Yang Sudah Setor:</span>
-                            <div class="flex gap-2">
+                            <div class="flex gap-2 text-[9px] font-black uppercase">
                                 <button type="button" onclick="centangSemua(true)"
-                                    class="text-indigo-600 hover:underline text-[10px]">Semua</button>
+                                    class="text-indigo-600 hover:underline">Semua</button>
                                 <button type="button" onclick="centangSemua(false)"
-                                    class="text-slate-500 hover:underline text-[10px]">Clear</button>
+                                    class="text-slate-400 hover:underline">Clear</button>
                             </div>
                         </label>
-                        <div class="border border-slate-200 rounded-lg p-2 bg-white max-h-48 overflow-y-auto space-y-1.5"
+                        <div class="border border-slate-200/60 rounded-xl p-2.5 bg-white max-h-48 overflow-y-auto space-y-1"
                             id="checklist-anak-container"></div>
                     </div>
                     <button type="submit"
-                        class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold p-2.5 rounded-lg text-sm transition shadow">
-                        SAVE Data Setoran</button>
+                        class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold p-3 rounded-xl text-xs transition shadow-sm shadow-indigo-100 flex items-center justify-center gap-1.5 active:scale-[0.98]">
+                        <span class="material-icons-round text-sm">save</span>Simpan Data Setoran
+                    </button>
                 </form>
             </div>
 
-            <div class="lg:col-span-4 bg-slate-50 p-4 rounded-xl border border-slate-200 h-fit">
-                <h2 class="text-xs font-bold text-slate-700 mb-3 uppercase tracking-wider">📋 2. Rekap Akumulasi Anggota
+            <div class="lg:col-span-4 bg-slate-50 p-4 rounded-2xl border border-slate-200/60 h-fit shadow-sm">
+                <h2
+                    class="text-[11px] font-black text-slate-600 mb-4 uppercase tracking-wider flex items-center gap-1.5">
+                    <span class="material-icons-round text-indigo-600 text-sm">analytics</span>2. Rekap Akumulasi
+                    Anggota
                 </h2>
-                <div class="max-h-[460px] overflow-y-auto pr-1" id="rekap-akumulasi-container">
-                </div>
+                <div class="max-h-[460px] overflow-y-auto pr-1 space-y-1.5" id="rekap-akumulasi-container"></div>
             </div>
 
-            <div class="lg:col-span-4 bg-white p-4 rounded-xl border border-slate-200">
-                <div class="flex justify-between items-center mb-3">
-                    <h2 class="text-xs font-bold text-slate-700 uppercase tracking-wider">📜 3. Histori
+            <div class="lg:col-span-4 bg-white p-4 rounded-2xl border border-slate-200/60 shadow-sm">
+                <div class="flex justify-between items-center mb-4">
+                    <h2
+                        class="text-[11px] font-black text-slate-600 uppercase tracking-wider flex items-center gap-1.5">
+                        <span class="material-icons-round text-indigo-600 text-sm">history</span>3. Histori Riwayat
                     </h2>
                     <button onclick="muatDataDariCloud()"
-                        class="text-[10px] text-indigo-600 hover:underline font-bold flex items-center gap-1">🔄 Refresh
-                        Cloud</button>
+                        class="text-[10px] text-indigo-600 hover:text-indigo-800 font-bold flex items-center gap-0.5 transition">
+                        <span class="material-icons-round text-xs animate-spin-hover">refresh</span>Refresh Cloud
+                    </button>
                 </div>
                 <div class="space-y-2 max-h-[400px] overflow-y-auto pr-1" id="log-container"></div>
-                <p id="log-kosong" class="text-center text-slate-400 italic text-xs my-6">Belum ada riwayat setoran.</p>
+                <p id="log-kosong"
+                    class="text-center text-slate-400 italic text-xs my-8 flex flex-col items-center gap-1">
+                    <span class="material-icons-round text-xl text-slate-300">folder_open</span>Belum ada riwayat
+                    setoran.
+                </p>
             </div>
         </div>
     </div>
 
     <script>
+        // ⚠️ GANTI DENGAN URL WEB APP APPS SCRIPT LO YANG ASLI
         const API_URL = "https://script.google.com/macros/s/AKfycbyy3wD0MyH8Va2FSS_4rgBieNeNxwJo-tZuP1ZkoRfU9894zh7dRYItlxYQ3F6gIPZhKw/exec";
         const PIN_BENDAHARA = "150828";
         const DENDA_PER_ALPA = 5000; // Tarif denda nominal per pelanggaran
 
-        // ⭐ DAFTAR NAMA YANG INGIN DISEMBUNYIKAN
+        // DAFTAR NAMA YANG DISEMBUNYIKAN
         const NAMA_DISEMBUNYIKAN = ["fidi", "yoga", "wili", "intan"];
 
         let masterAnggota = [];
@@ -183,7 +249,8 @@
         let aksiTertundaBendahara = null;
 
         function tampilkanLoading(show) {
-            document.getElementById('loading').style.display = show ? 'flex' : 'none';
+            const el = document.getElementById('loading');
+            if (el) el.style.display = show ? 'flex' : 'none';
         }
 
         function setModeTanggal(mode) {
@@ -194,17 +261,19 @@
             const inputManual = document.getElementById('massal-tanggal-manual');
 
             if (mode === 'auto') {
-                btnAuto.className = "px-2 py-0.5 rounded bg-white text-indigo-600 shadow-sm transition";
-                btnManual.className = "px-2 py-0.5 rounded text-slate-600 transition";
-                inputAuto.classList.remove('hidden');
-                inputManual.classList.add('hidden');
+                if (btnAuto) btnAuto.className = "px-2 py-0.5 rounded bg-white text-indigo-600 shadow-sm transition";
+                if (btnManual) btnManual.className = "px-2 py-0.5 rounded text-slate-600 transition";
+                if (inputAuto) inputAuto.classList.remove('hidden');
+                if (inputManual) inputManual.classList.add('hidden');
                 aturTampilanTanggalSistem();
             } else {
-                btnAuto.className = "px-2 py-0.5 rounded text-slate-600 transition";
-                btnManual.className = "px-2 py-0.5 rounded bg-white text-indigo-600 shadow-sm transition";
-                inputAuto.classList.add('hidden');
-                inputManual.classList.remove('hidden');
-                inputManual.value = new Date().toISOString().split('T')[0];
+                if (btnAuto) btnAuto.className = "px-2 py-0.5 rounded text-slate-600 transition";
+                if (btnManual) btnManual.className = "px-2 py-0.5 rounded bg-white text-indigo-600 shadow-sm transition";
+                if (inputAuto) inputAuto.classList.add('hidden');
+                if (inputManual) {
+                    inputManual.classList.remove('hidden');
+                    inputManual.value = new Date().toISOString().split('T')[0];
+                }
             }
         }
 
@@ -217,47 +286,53 @@
 
         function dapatkanWaktuLengkap() {
             const sekarang = new Date();
-            const tanggalFormat = sekarang.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+            const tanggalFormat = Thermal = sekarang.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
             const jamFormat = `${String(sekarang.getHours()).padStart(2, '0')}:${String(sekarang.getMinutes()).padStart(2, '0')}`;
             return `${tanggalFormat} | Jam ${jamFormat}`;
         }
 
         function aturTampilanTanggalSistem() {
             const sekarang = new Date();
-            document.getElementById('massal-keterangan').value = sekarang.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+            const inputAuto = document.getElementById('massal-keterangan');
+            if (inputAuto) inputAuto.value = sekarang.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
         }
 
         function panggilPinModal(callbackAksi) {
             aksiTertundaBendahara = callbackAksi;
             const modal = document.getElementById('pin-modal');
             const inputPin = document.getElementById('input-pin-custom');
-            inputPin.value = '';
-            document.getElementById('pin-error-msg').classList.add('hidden');
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-            inputPin.focus();
+            const errorMsg = document.getElementById('pin-error-msg');
+
+            if (inputPin) inputPin.value = '';
+            if (errorMsg) errorMsg.classList.add('hidden');
+            if (modal) {
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+            }
+            if (inputPin) inputPin.focus();
         }
 
         function tutupPinModal() {
-            document.getElementById('pin-modal').classList.add('hidden');
+            const modal = document.getElementById('pin-modal');
+            if (modal) modal.classList.add('hidden');
             aksiTertundaBendahara = null;
         }
 
         function submitPinOtorisasi() {
-            const inputPin = document.getElementById('input-pin-custom').value;
+            const inputPinEl = document.getElementById('input-pin-custom');
+            const errorMsg = document.getElementById('pin-error-msg');
+            if (!inputPinEl) return;
+
+            const inputPin = inputPinEl.value;
             if (String(inputPin).trim() === String(PIN_BENDAHARA).trim()) {
                 if (typeof aksiTertundaBendahara === 'function') aksiTertundaBendahara();
                 tutupPinModal();
             } else {
-                document.getElementById('pin-error-msg').classList.remove('hidden');
-                document.getElementById('input-pin-custom').value = '';
-                document.getElementById('input-pin-custom').focus();
+                if (errorMsg) errorMsg.classList.remove('hidden');
+                inputPinEl.value = '';
+                inputPinEl.focus();
             }
         }
-
-        document.getElementById('input-pin-custom').addEventListener('keypress', function (e) {
-            if (e.key === 'Enter') submitPinOtorisasi();
-        });
 
         async function muatDataDariCloud() {
             tampilkanLoading(true);
@@ -271,225 +346,254 @@
                 renderAplikasi();
                 aturTampilanTanggalSistem();
             } catch (err) {
-                alert("❌ Gagal mengambil data dari cloud database!");
+                // 🔥 SEKARANG LOG ERROR DIKASIH TAHU DETAILNYA BIAR GAMPANG LACAKNYA
+                alert("❌ Gagal Mengambil Data!\nDetail Error: " + err.message + "\n\nBuka F12 Console untuk detail teknis.");
+                console.error("Error utama saat fetch data:", err);
             }
             tampilkanLoading(false);
         }
 
         function renderAplikasi() {
             const checklistAnakContainer = document.getElementById('checklist-anak-container');
-            checklistAnakContainer.innerHTML = '';
-
-            masterAnggota.forEach((nama) => {
-                if (!nama) return;
-                const itemCheck = document.createElement('label');
-                itemCheck.className = "flex items-center gap-2 p-1 rounded hover:bg-slate-50 cursor-pointer text-xs font-medium text-slate-700";
-                itemCheck.innerHTML = `<input type="checkbox" value="${nama}" class="checkbox-anak rounded border-gray-300 text-indigo-600 w-3.5 h-3.5"><span>${nama}</span>`;
-                checklistAnakContainer.appendChild(itemCheck);
-            });
+            if (checklistAnakContainer) {
+                checklistAnakContainer.innerHTML = '';
+                masterAnggota.forEach((nama) => {
+                    if (!nama) return;
+                    const itemCheck = document.createElement('label');
+                    itemCheck.className = "flex items-center gap-2 p-1 rounded hover:bg-slate-50 cursor-pointer text-xs font-medium text-slate-700";
+                    itemCheck.innerHTML = `<input type="checkbox" value="${nama}" class="checkbox-anak rounded border-gray-300 text-indigo-600 w-3.5 h-3.5"><span>${nama}</span>`;
+                    checklistAnakContainer.appendChild(itemCheck);
+                });
+            }
 
             const logContainer = document.getElementById('log-container');
-            logContainer.innerHTML = '';
+            if (logContainer) {
+                logContainer.innerHTML = '';
+                const logVideoVafor = riwayatKas.filter(log => log.kategori && log.kategori.startsWith('Video Vafor'));
 
-            const logVideoVafor = riwayatKas.filter(log => log.kategori && log.kategori.startsWith('Video Vafor'));
-            document.getElementById('log-kosong').style.display = logVideoVafor.length === 0 ? 'block' : 'none';
+                const logKosongEl = document.getElementById('log-kosong');
+                if (logKosongEl) logKosongEl.style.display = logVideoVafor.length === 0 ? 'block' : 'none';
 
-            logVideoVafor.forEach((log) => {
-                const cardLog = document.createElement('div');
-                cardLog.className = `p-2 rounded-lg border text-xs bg-slate-50 border-slate-200`;
-                const badgeStatus = log.status === 'Lunas' ? `<span class="bg-emerald-100 text-emerald-700 text-[9px] font-bold px-1.5 py-0.5 rounded">Sudah Setor</span>` : `<span class="bg-rose-100 text-rose-700 text-[9px] font-bold px-1.5 py-0.5 rounded">Belum Setor</span>`;
+                logVideoVafor.forEach((log) => {
+                    const cardLog = document.createElement('div');
+                    cardLog.className = `p-2 rounded-lg border text-xs bg-slate-50 border-slate-200`;
+                    const badgeStatus = log.status === 'Lunas' ? `<span class="bg-emerald-100 text-emerald-700 text-[9px] font-bold px-1.5 py-0.5 rounded">Sudah Setor</span>` : `<span class="bg-rose-100 text-rose-700 text-[9px] font-bold px-1.5 py-0.5 rounded">Belum Setor</span>`;
 
-                cardLog.innerHTML = `
+                    cardLog.innerHTML = `
                     <div class="flex justify-between text-[10px] text-slate-500 font-mono mb-1"><span>📅 ${log.keterangan || log.waktu}</span><span class="font-bold text-indigo-600">${log.kategori}</span></div>
                     <div class="flex justify-between items-center"><div class="font-bold text-slate-800">${log.nama}</div>${badgeStatus}</div>
                 `;
-                logContainer.insertBefore(cardLog, logContainer.firstChild);
-            });
-
-            // ⭐ LOGIKA KONEKSI INTERAKTIF: HITUNG AKUMULASI DENDA MINUS PEMBAYARAN DI WEB KAS UTAMA
-            const rekapContainer = document.getElementById('rekap-akumulasi-container');
-            rekapContainer.innerHTML = '';
-
-            let totalDendaPeletonkeseluruhan = 0;
-            let htmlContentAnggota = '';
-
-            masterAnggota.forEach(nama => {
-                if (!nama) return;
-                let totalSudah = 0;
-                let totalBelum = 0;
-
-                // 1. Hitung record kelalaian dari log internal video
-                logVideoVafor.forEach(log => {
-                    if (log.nama === nama) {
-                        if (log.status === 'Lunas') totalSudah++;
-                        if (log.status === 'Belum Bayar' || log.status === 'Belum Setor') totalBelum++;
-                    }
+                    logContainer.insertBefore(cardLog, logContainer.firstChild);
                 });
 
-                // 2. KONEKSI FITUR UTAMA: Scan riwayat pembayaran denda video dari Web Kas Utama
-                let jumlahSudahBayarDenda = 0;
-                riwayatKas.forEach(log => {
-                    if (log.nama === nama) {
-                        const kat = String(log.kategori || "").toLowerCase();
-                        const ket = String(log.keterangan || "").toLowerCase();
-                        const nom = Number(log.nominal || 0);
+                // LOGIKA REKAP AKUMULASI DENDA
+                const rekapContainer = document.getElementById('rekap-akumulasi-container');
+                if (rekapContainer) {
+                    rekapContainer.innerHTML = '';
+                    let totalDendaPeletonkeseluruhan = 0;
+                    let htmlContentAnggota = '';
 
-                        // Mendeteksi otomatis jika di Dashboard Kas menginput kategori/keterangan denda video
-                        const entriDendaVideo = (kat.includes("video") || ket.includes("video") || kat.includes("vafor") || ket.includes("vafor"));
-                        const entriStatusBayar = (kat.includes("denda") || kat.includes("bayar") || ket.includes("denda") || ket.includes("bayar"));
+                    masterAnggota.forEach(nama => {
+                        if (!nama) return;
+                        let totalSudah = 0;
+                        let totalBelum = 0;
 
-                        if (nom > 0 && entriDendaVideo && entriStatusBayar) {
-                            jumlahSudahBayarDenda += nom;
+                        logVideoVafor.forEach(log => {
+                            if (log.nama === nama) {
+                                if (log.status === 'Lunas') totalSudah++;
+                                if (log.status === 'Belum Bayar' || log.status === 'Belum Setor') totalBelum++;
+                            }
+                        });
+
+                        let jumlahSudahBayarDenda = 0;
+                        riwayatKas.forEach(log => {
+                            if (log.nama === nama) {
+                                const kat = String(log.kategori || "").toLowerCase();
+                                const ket = String(log.keterangan || "").toLowerCase();
+                                const nom = Number(log.nominal || 0);
+
+                                const entriDendaVideo = (kat.includes("video") || ket.includes("video") || kat.includes("vafor"));
+                                const entriStatusBayar = (kat.includes("denda") || kat.includes("bayar"));
+
+                                if (nom > 0 && entriDendaVideo && entriStatusBayar) {
+                                    jumlahSudahBayarDenda += nom;
+                                }
+                            }
+                        });
+
+                        let grossDenda = totalBelum * DENDA_PER_ALPA;
+                        let sisaDenda = grossDenda - jumlahSudahBayarDenda;
+                        if (sisaDenda < 0) sisaDenda = 0;
+
+                        totalDendaPeletonkeseluruhan += sisaDenda;
+
+                        let badgeDendaHtml = '';
+                        if (grossDenda === 0) {
+                            badgeDendaHtml = `<span class="text-[10px] text-emerald-600 font-medium bg-emerald-50 border border-emerald-100 px-1.5 py-0.5 rounded-md w-fit mt-1">✨ Aman / Bebas Denda</span>`;
+                        } else if (sisaDenda <= 0) {
+                            badgeDendaHtml = `<span class="text-[10px] text-emerald-700 font-bold bg-emerald-100 border border-emerald-200 px-1.5 py-0.5 rounded-md w-fit mt-1">✅ Denda Lunas (Dibayar Rp ${jumlahSudahBayarDenda.toLocaleString('id-ID')})</span>`;
+                        } else {
+                            badgeDendaHtml = `<span class="text-[10px] text-rose-600 font-bold bg-rose-50 border border-rose-100 px-1.5 py-0.5 rounded-md w-fit mt-1">Wajib Bayar: Rp ${sisaDenda.toLocaleString('id-ID')}</span>`;
+                            if (jumlahSudahBayarDenda > 0) {
+                                badgeDendaHtml += `<span class="text-[9px] text-slate-500 italic block mt-0.5">(Dicicil: Rp ${jumlahSudahBayarDenda.toLocaleString('id-ID')} dari Rp ${grossDenda.toLocaleString('id-ID')})</span>`;
+                            }
                         }
-                    }
-                });
 
-                // 3. Kalkulasi Pengurangan Denda secara Otomatis
-                let grossDenda = totalBelum * DENDA_PER_ALPA;
-                let sisaDenda = grossDenda - jumlahSudahBayarDenda;
-                if (sisaDenda < 0) sisaDenda = 0; // Mengunci agar nilai tidak minus jika lunas
-
-                totalDendaPeletonkeseluruhan += sisaDenda;
-
-                // Buat visual status denda dinamis
-                let badgeDendaHtml = '';
-                if (grossDenda === 0) {
-                    badgeDendaHtml = `<span class="text-[10px] text-emerald-600 font-medium bg-emerald-50 border border-emerald-100 px-1.5 py-0.5 rounded-md w-fit mt-1">✨ Aman / Bebas Denda</span>`;
-                } else if (sisaDenda <= 0) {
-                    badgeDendaHtml = `<span class="text-[10px] text-emerald-700 font-bold bg-emerald-100 border border-emerald-200 px-1.5 py-0.5 rounded-md w-fit mt-1">✅ Denda Lunas (Dibayar Rp ${jumlahSudahBayarDenda.toLocaleString('id-ID')})</span>`;
-                } else {
-                    badgeDendaHtml = `<span class="text-[10px] text-rose-600 font-bold bg-rose-50 border border-rose-100 px-1.5 py-0.5 rounded-md w-fit mt-1">Wajib Bayar: Rp ${sisaDenda.toLocaleString('id-ID')}</span>`;
-                    if (jumlahSudahBayarDenda > 0) {
-                        badgeDendaHtml += `<span class="text-[9px] text-slate-500 italic block mt-0.5">(Dicicil: Rp ${jumlahSudahBayarDenda.toLocaleString('id-ID')} dari Rp ${grossDenda.toLocaleString('id-ID')})</span>`;
-                    }
-                }
-
-                htmlContentAnggota += `
-                    <div class="p-2.5 bg-white border border-slate-200 rounded-xl flex justify-between items-center text-xs shadow-sm hover:border-slate-300 transition">
-                        <div class="flex flex-col gap-0.5">
-                            <span class="font-bold text-slate-800">👤 ${nama}</span>
-                            ${badgeDendaHtml}
+                        htmlContentAnggota += `
+                        <div class="p-2.5 bg-white border border-slate-200 rounded-xl flex justify-between items-center text-xs shadow-sm hover:border-slate-300 transition">
+                            <div class="flex flex-col gap-0.5">
+                                <span class="font-bold text-slate-800">👤 ${nama}</span>
+                                ${badgeDendaHtml}
+                            </div>
+                            <div class="flex gap-1.5 font-mono text-[10px]">
+                                <span class="bg-emerald-50 border border-emerald-200 text-emerald-700 font-black px-2 py-0.5 rounded-md">✅ ${totalSudah}x</span>
+                                <span class="bg-rose-50 border border-rose-200 text-rose-700 font-black px-2 py-0.5 rounded-md">❌ ${totalBelum}x</span>
+                            </div>
                         </div>
-                        <div class="flex gap-1.5 font-mono text-[10px]">
-                            <span class="bg-emerald-50 border border-emerald-200 text-emerald-700 font-black px-2 py-0.5 rounded-md">✅ ${totalSudah}x</span>
-                            <span class="bg-rose-50 border border-rose-200 text-rose-700 font-black px-2 py-0.5 rounded-md">❌ ${totalBelum}x</span>
-                        </div>
-                    </div>
-                `;
-            });
-
-            if (masterAnggota.length > 0) {
-                const ringkasanCard = document.createElement('div');
-                ringkasanCard.className = "p-3 bg-slate-900 text-white rounded-xl mb-3 flex justify-between items-center shadow-md";
-                ringkasanCard.innerHTML = `
-                    <div>
-                        <p class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Total Kas Denda Belum Setor</p>
-                        <p class="text-base font-black text-amber-400 font-mono">Rp ${totalDendaPeletonkeseluruhan.toLocaleString('id-ID')}</p>
-                    </div>
-                    <div class="bg-slate-800 p-2 rounded-lg text-sm">💰</div>
-                `;
-                rekapContainer.appendChild(ringkasanCard);
-
-                const listWrapper = document.createElement('div');
-                listWrapper.className = "space-y-2 max-h-[380px] overflow-y-auto pr-0.5";
-                listWrapper.innerHTML = htmlContentAnggota;
-                rekapContainer.appendChild(listWrapper);
-            } else {
-                rekapContainer.innerHTML = `<p class="text-center text-slate-400 italic text-xs py-4">Daftar anggota masih kosong.</p>`;
-            }
-
-            // MONITORING LIVE BATCH (ATAS)
-            const containerSudah = document.getElementById('list-video-sudah');
-            const containerBelum = document.getElementById('list-video-belum');
-            const periodeLabel = document.getElementById('video-vafor-periode');
-            const filterSelect = document.getElementById('filter-video-tanggal');
-
-            containerSudah.innerHTML = '';
-            containerBelum.innerHTML = '';
-
-            if (logVideoVafor.length > 0) {
-                const semuaWaktuUnik = [...new Set(logVideoVafor.map(log => log.waktu))];
-
-                if (filterSelect.options.length - 1 !== semuaWaktuUnik.length) {
-                    filterSelect.innerHTML = '<option value="">-- Pilih Batch Tugas --</option>';
-                    semuaWaktuUnik.forEach((waktu) => {
-                        const opt = document.createElement('option');
-                        opt.value = waktu;
-                        const contohLog = logVideoVafor.find(l => l.waktu === waktu);
-                        opt.textContent = `${contohLog.kategori} - ${contohLog.keterangan || "Otomatis"}`;
-                        filterSelect.appendChild(opt);
+                    `;
                     });
-                    filterSelect.value = semuaWaktuUnik[semuaWaktuUnik.length - 1];
+
+                    if (masterAnggota.length > 0) {
+                        const ringkasanCard = document.createElement('div');
+                        ringkasanCard.className = "p-3 bg-slate-900 text-white rounded-xl mb-3 flex justify-between items-center shadow-md";
+                        ringkasanCard.innerHTML = `
+                        <div>
+                            <p class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Total Kas Denda Belum Setor</p>
+                            <p class="text-base font-black text-amber-400 font-mono">Rp ${totalDendaPeletonkeseluruhan.toLocaleString('id-ID')}</p>
+                        </div>
+                        <div class="bg-slate-800 p-2 rounded-lg text-sm">💰</div>
+                    `;
+                        rekapContainer.appendChild(ringkasanCard);
+
+                        const listWrapper = document.createElement('div');
+                        listWrapper.className = "space-y-2 max-h-[380px] overflow-y-auto pr-0.5";
+                        listWrapper.innerHTML = htmlContentAnggota;
+                        rekapContainer.appendChild(listWrapper);
+                    } else {
+                        rekapContainer.innerHTML = `<p class="text-center text-slate-400 italic text-xs py-4">Daftar anggota masih kosong.</p>`;
+                    }
                 }
 
-                const waktuTerpilih = filterSelect.value || semuaWaktuUnik[semuaWaktuUnik.length - 1];
-                const contohLogTerpilih = logVideoVafor.find(l => l.waktu === waktuTerpilih);
-                periodeLabel.textContent = contohLogTerpilih ? `${contohLogTerpilih.kategori} (${contohLogTerpilih.keterangan || "Otomatis"})` : "Terpilih";
+                // MONITORING LIVE BATCH (ATAS)
+                const containerSudah = document.getElementById('list-video-sudah');
+                const containerBelum = document.getElementById('list-video-belum');
+                const periodeLabel = document.getElementById('video-vafor-periode');
+                const filterSelect = document.getElementById('filter-video-tanggal');
 
-                const logBatchTerpilih = logVideoVafor.filter(log => log.waktu === waktuTerpilih);
-                let sudahSetor = [], belumSetor = [];
+                if (containerSudah && containerBelum && periodeLabel && filterSelect) {
+                    containerSudah.innerHTML = '';
+                    containerBelum.innerHTML = '';
 
-                logBatchTerpilih.forEach(log => {
-                    if (log.status === 'Lunas') sudahSetor.push(log.nama);
-                    else belumSetor.push(log.nama);
-                });
+                    if (logVideoVafor.length > 0) {
+                        const semuaWaktuUnik = [...new Set(logVideoVafor.map(log => log.waktu))];
 
-                masterAnggota.forEach(nama => {
-                    if (nama && !sudahSetor.includes(nama) && !belumSetor.includes(nama)) belumSetor.push(nama);
-                });
+                        if (filterSelect.options.length - 1 !== semuaWaktuUnik.length) {
+                            filterSelect.innerHTML = '<option value="">-- Pilih Batch Tugas --</option>';
+                            semuaWaktuUnik.forEach((waktu) => {
+                                const opt = document.createElement('option');
+                                opt.value = waktu;
+                                const contohLog = logVideoVafor.find(l => l.waktu === waktu);
+                                opt.textContent = `${contohLog.kategori} - ${contohLog.keterangan || "Otomatis"}`;
+                                filterSelect.appendChild(opt);
+                            });
+                            filterSelect.value = semuaWaktuUnik[semuaWaktuUnik.length - 1];
+                        }
 
-                document.getElementById('count-video-sudah').textContent = `${sudahSetor.length} Orang`;
-                document.getElementById('count-video-belum').textContent = `${belumSetor.length} Orang`;
+                        const waktuTerpilih = filterSelect.value || semuaWaktuUnik[semuaWaktuUnik.length - 1];
+                        const contohLogTerpilih = logVideoVafor.find(l => l.waktu === waktuTerpilih);
+                        periodeLabel.textContent = contohLogTerpilih ? `${contohLogTerpilih.kategori} (${contohLogTerpilih.keterangan || "Otomatis"})` : "Terpilih";
 
-                sudahSetor.forEach(nama => {
-                    containerSudah.innerHTML += `<span class="bg-emerald-100 text-emerald-800 text-[11px] font-bold px-2 py-1 rounded-lg border border-emerald-200 shadow-sm">${nama}</span>`;
-                });
-                belumSetor.forEach(nama => {
-                    containerBelum.innerHTML += `<span class="bg-rose-100 text-rose-800 text-[11px] font-bold px-2 py-1 rounded-lg border border-rose-200 shadow-sm">${nama}</span>`;
-                });
-            } else {
-                periodeLabel.textContent = "Belum Ada Data";
-                containerSudah.innerHTML = `<span class="text-slate-400 italic text-[11px]">Belum ada data.</span>`;
-                containerBelum.innerHTML = `<span class="text-slate-400 italic text-[11px]">Belum ada data.</span>`;
+                        const logBatchTerpilih = logVideoVafor.filter(log => log.waktu === waktuTerpilih);
+                        let sudahSetor = [], belumSetor = [];
+
+                        logBatchTerpilih.forEach(log => {
+                            if (log.status === 'Lunas') sudahSetor.push(log.nama);
+                            else belumSetor.push(log.nama);
+                        });
+
+                        masterAnggota.forEach(nama => {
+                            if (nama && !sudahSetor.includes(nama) && !belumSetor.includes(nama)) belumSetor.push(nama);
+                        });
+
+                        document.getElementById('count-video-sudah').textContent = `${sudahSetor.length} Orang`;
+                        document.getElementById('count-video-belum').textContent = `${belumSetor.length} Orang`;
+
+                        sudahSetor.forEach(nama => {
+                            containerSudah.innerHTML += `<span class="bg-emerald-100 text-emerald-800 text-[11px] font-bold px-2 py-1 rounded-lg border border-emerald-200 shadow-sm">${nama}</span>`;
+                        });
+                        belumSetor.forEach(nama => {
+                            containerBelum.innerHTML += `<span class="bg-rose-100 text-rose-800 text-[11px] font-bold px-2 py-1 rounded-lg border border-rose-200 shadow-sm">${nama}</span>`;
+                        });
+                    } else {
+                        periodeLabel.textContent = "Belum Ada Data";
+                        containerSudah.innerHTML = `<span class="text-slate-400 italic text-[11px]">Belum ada data.</span>`;
+                        containerBelum.innerHTML = `<span class="text-slate-400 italic text-[11px]">Belum ada data.</span>`;
+                    }
+                }
             }
         }
 
-        document.getElementById('form-setor-massal').addEventListener('submit', function (e) {
-            e.preventDefault();
-            panggilPinModal(async function () {
-                tampilkanLoading(true);
-                try {
-                    const kategori = document.getElementById('massal-kategori').value;
-                    let tanggalFinalTeks = modeTanggal === 'auto' ? document.getElementById('massal-keterangan').value : konversiTanggalManualKeTeks(document.getElementById('massal-tanggal-manual').value);
-                    const waktuAkuratSistem = dapatkanWaktuLengkap();
+        // MEMASTIKAN BERJALAN SETELAH ELEMENT HTML TERSEDIA
+        window.addEventListener('DOMContentLoaded', () => {
+            const inputPinCustom = document.getElementById('input-pin-custom');
+            if (inputPinCustom) {
+                inputPinCustom.addEventListener('keypress', function (e) {
+                    if (e.key === 'Enter') submitPinOtorisasi();
+                });
+            }
 
-                    const checkboxes = document.querySelectorAll('.checkbox-anak:checked');
-                    let daftarNamaLunas = [];
-                    checkboxes.forEach(cb => daftarNamaLunas.push(cb.value));
+            const formSetorMassal = document.getElementById('form-setor-massal');
+            if (formSetorMassal) {
+                formSetorMassal.addEventListener('submit', function (e) {
+                    e.preventDefault();
+                    panggilPinModal(async function () {
+                        tampilkanLoading(true);
+                        try {
+                            const kategori = document.getElementById('massal-kategori').value;
+                            let tanggalFinalTeks = modeTanggal === 'auto' ? document.getElementById('massal-keterangan').value : konversiTanggalManualKeTeks(document.getElementById('massal-tanggal-manual').value);
+                            const waktuAkuratSistem = dapatkanWaktuLengkap();
 
-                    let dataSetoranGlobal = [];
-                    masterAnggota.forEach(nama => {
-                        if (!nama) return;
-                        let status = daftarNamaLunas.includes(nama) ? 'Lunas' : 'Belum Bayar';
-                        dataSetoranGlobal.push({ waktu: waktuAkuratSistem, nama: nama, kategori: kategori, nominal: 0, keterangan: tanggalFinalTeks, status: status });
+                            const checkboxes = document.querySelectorAll('.checkbox-anak:checked');
+                            let daftarNamaLunas = [];
+                            checkboxes.forEach(cb => daftarNamaLunas.push(cb.value));
+
+                            let dataSetoranGlobal = [];
+                            masterAnggota.forEach(nama => {
+                                if (!nama) return;
+                                let status = daftarNamaLunas.includes(nama) ? 'Lunas' : 'Belum Setor'; // Disamakan 'Belum Setor' agar terbaca Apps Script
+                                dataSetoranGlobal.push({ waktu: waktuAkuratSistem, nama: nama, kategori: kategori, nominal: 0, keterangan: tanggalFinalTeks, status: status });
+                            });
+
+                            await fetch(API_URL, { method: 'POST', body: JSON.stringify({ aksi: 'setorMassal', data: dataSetoranGlobal }) });
+                            centangSemua(false);
+                            setModeTanggal('auto');
+
+                            const filterSelect = document.getElementById('filter-video-tanggal');
+                            if (filterSelect) filterSelect.innerHTML = '<option value="">-- Pilih Batch Tugas --</option>';
+
+                            await muatDataDariCloud();
+                            alert("🔒 Otorisasi Sukses: Data setoran video berhasil disimpan!");
+                        } catch (error) {
+                            alert("❌ Gagal menyimpan data!\nDetail: " + error.message);
+                        } finally {
+                            tampilkanLoading(false);
+                        }
                     });
+                });
+            }
 
-                    await fetch(API_URL, { method: 'POST', body: JSON.stringify({ aksi: 'setorMassal', data: dataSetoranGlobal }) });
-                    centangSemua(false);
-                    setModeTanggal('auto');
-                    document.getElementById('filter-video-tanggal').innerHTML = '<option value="">-- Pilih Batch Tugas --</option>';
-                    await muatDataDariCloud();
-                    alert("🔒 Otorisasi Sukses: Data setoran video berhasil disimpan!");
-                } catch (error) { alert("❌ Gagal menyimpan data!"); }
-                finally { tampilkanLoading(false); }
-            });
+            const filterSelect = document.getElementById('filter-video-tanggal');
+            if (filterSelect) {
+                filterSelect.addEventListener('change', renderAplikasi);
+            }
+
+            // Jalankan fetch data pertama kali saat DOM siap
+            muatDataDariCloud();
         });
 
         function centangSemua(status) {
             document.querySelectorAll('.checkbox-anak').forEach(cb => cb.checked = status);
         }
-
-        muatDataDariCloud();
     </script>
 </body>
 
