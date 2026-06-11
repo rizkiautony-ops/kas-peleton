@@ -238,19 +238,9 @@
     </div>
 
     <script>
-        // ⚠️ GANTI DENGAN URL WEB APP APPS SCRIPT LO YANG ASLI
         const API_URL = "https://script.google.com/macros/s/AKfycbyy3wD0MyH8Va2FSS_4rgBieNeNxwJo-tZuP1ZkoRfU9894zh7dRYItlxYQ3F6gIPZhKw/exec";
+        const PIN_BENDAHARA = "150828";
 
-        // FITUR BARU: 2 Akun Bendahara dengan PIN masing-masing
-        const AKUN_BENDAHARA = {
-            "150828": "Tony",
-            "951742": "Ica"  
-        };
-        let namaBendaharaAktif = ""; // Variabel untuk menyimpan siapa yang sedang menginput
-
-        const DENDA_PER_ALPA = 5000; // Tarif denda nominal per pelanggaran
-
-        // DAFTAR NAMA YANG DISEMBUNYIKAN
         const NAMA_DISEMBUNYIKAN = ["fidi", "yoga", "wili", "intan"];
 
         let masterAnggota = [];
@@ -261,6 +251,45 @@
         function tampilkanLoading(show) {
             const el = document.getElementById('loading');
             if (el) el.style.display = show ? 'flex' : 'none';
+        }
+
+        function formatRupiah(angka) {
+            return 'Rp ' + angka.toLocaleString('id-ID');
+        }
+
+        // FUNGSI TAB SWITCHER
+        function switchTab(tab) {
+            const tabMasuk = document.getElementById('tab-masuk');
+            const tabKeluar = document.getElementById('tab-keluar');
+            const panelMasuk = document.getElementById('panel-masuk');
+            const panelKeluar = document.getElementById('panel-keluar');
+
+            if (tab === 'masuk') {
+                if (tabMasuk) tabMasuk.className = "flex-1 py-2 text-center text-xs font-bold text-indigo-600 bg-indigo-50 rounded-md transition uppercase tracking-wider";
+                if (tabKeluar) tabKeluar.className = "flex-1 py-2 text-center text-xs font-bold text-slate-500 hover:text-slate-700 rounded-md transition uppercase tracking-wider";
+                if (panelMasuk) panelMasuk.classList.remove('hidden');
+                if (panelKeluar) panelKeluar.classList.add('hidden');
+            } else {
+                if (tabKeluar) tabKeluar.className = "flex-1 py-2 text-center text-xs font-bold text-red-600 bg-red-50 rounded-md transition uppercase tracking-wider";
+                if (tabMasuk) tabMasuk.className = "flex-1 py-2 text-center text-xs font-bold text-slate-500 hover:text-slate-700 rounded-md transition uppercase tracking-wider";
+                if (panelMasuk) panelMasuk.classList.add('hidden');
+                if (panelKeluar) panelKeluar.classList.remove('hidden');
+            }
+        }
+
+        function toggleNominalManual() {
+            const pilihanEl = document.querySelector('input[name="nominal-pilihan"]:checked');
+            const inputManual = document.getElementById('massal-nominal-manual');
+            if (!inputManual) return;
+
+            const pilihan = pilihanEl ? pilihanEl.value : '';
+            if (pilihan === 'manual') {
+                inputManual.classList.remove('hidden');
+                inputManual.focus();
+            } else {
+                inputManual.classList.add('hidden');
+                inputManual.value = '';
+            }
         }
 
         function setModeTanggal(mode) {
@@ -301,10 +330,11 @@
             return `${tanggalFormat} | Jam ${jamFormat}`;
         }
 
+        // 🔥 PERBAIKAN BUG: Kata 'Pediatric =' yang bikin crash sudah dihapus total di sini
         function aturTampilanTanggalSistem() {
             const sekarang = new Date();
-            const inputAuto = document.getElementById('massal-keterangan');
-            if (inputAuto) inputAuto.value = sekarang.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+            const el = document.getElementById('massal-keterangan');
+            if (el) el.value = sekarang.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
         }
 
         function panggilPinModal(callbackAksi) {
@@ -318,27 +348,23 @@
             if (modal) {
                 modal.classList.remove('hidden');
                 modal.classList.add('flex');
+                if (inputPin) inputPin.focus();
             }
-            if (inputPin) inputPin.focus();
         }
 
         function tutupPinModal() {
             const modal = document.getElementById('pin-modal');
             if (modal) modal.classList.add('hidden');
             aksiTertundaBendahara = null;
-            namaBendaharaAktif = ""; // Bersihkan nama setelah aksi selesai
         }
 
-        // FITUR BARU: Validasi menggunakan objek AKUN_BENDAHARA
         function submitPinOtorisasi() {
             const inputPinEl = document.getElementById('input-pin-custom');
             const errorMsg = document.getElementById('pin-error-msg');
             if (!inputPinEl) return;
 
-            const inputPin = String(inputPinEl.value).trim();
-
-            if (AKUN_BENDAHARA[inputPin]) {
-                namaBendaharaAktif = AKUN_BENDAHARA[inputPin]; // Set siapa yang login
+            const inputPin = inputPinEl.value;
+            if (String(inputPin).trim() === String(PIN_BENDAHARA).trim()) {
                 if (typeof aksiTertundaBendahara === 'function') aksiTertundaBendahara();
                 tutupPinModal();
             } else {
@@ -348,267 +374,370 @@
             }
         }
 
+        // Menggunakan window load event atau pengecekan manual agar tidak error saat DOM belum siap
+        document.addEventListener("DOMContentLoaded", function () {
+            const inputPinCustomEl = document.getElementById('input-pin-custom');
+            if (inputPinCustomEl) {
+                inputPinCustomEl.addEventListener('keypress', function (e) {
+                    if (e.key === 'Enter') submitPinOtorisasi();
+                });
+            }
+            muatDataDariCloud();
+        });
+
         async function muatDataDariCloud() {
             tampilkanLoading(true);
             try {
+                console.log("Mengirim request ambilData ke:", API_URL);
                 let response = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ aksi: 'ambilData' }) });
+                if (!response.ok) throw new Error(`Server merespon dengan status HTTP: ${response.status}`);
+
                 let data = await response.json();
-
-                masterAnggota = (data.anggota || []).filter(nama => !NAMA_DISEMBUNYIKAN.includes(nama));
-                riwayatKas = (data.riwayat || []).filter(log => !NAMA_DISEMBUNYIKAN.includes(log.nama));
-
+                masterAnggota = data.anggota || [];
+                riwayatKas = data.riwayat || [];
                 renderAplikasi();
                 aturTampilanTanggalSistem();
             } catch (err) {
-                alert("❌ Gagal Mengambil Data!\nDetail Error: " + err.message + "\n\nBuka F12 Console untuk detail teknis.");
-                console.error("Error utama saat fetch data:", err);
+                console.error("Detail Eror Koneksi Cloud:", err);
+                alert(`❌ Gagal Mengambil Data!\n\nDetail Eror: ${err.message}`);
             }
             tampilkanLoading(false);
         }
 
+        // 🔥 SISTEM RENDER UTAMA
         function renderAplikasi() {
+            const listAnggotaMaster = document.getElementById('list-anggota-master');
             const checklistAnakContainer = document.getElementById('checklist-anak-container');
-            if (checklistAnakContainer) {
-                checklistAnakContainer.innerHTML = '';
-                masterAnggota.forEach((nama) => {
-                    if (!nama) return;
+            const keluarPjSelect = document.getElementById('keluar-pj');
+
+            const pjTerpilihLama = keluarPjSelect ? keluarPjSelect.value : '';
+
+            if (listAnggotaMaster) listAnggotaMaster.innerHTML = '';
+            if (checklistAnakContainer) checklistAnakContainer.innerHTML = '';
+            if (keluarPjSelect) keluarPjSelect.innerHTML = '<option value="">-- Pilih Anggota Peleton --</option>';
+
+            // Render Daftar Anggota Aktif
+            masterAnggota.forEach((nama) => {
+                if (!nama || NAMA_DISEMBUNYIKAN.includes(nama)) return;
+
+                if (listAnggotaMaster) {
+                    const item = document.createElement('div');
+                    item.className = "p-1.5 text-xs text-slate-700 font-medium";
+                    item.textContent = nama;
+                    listAnggotaMaster.appendChild(item);
+                }
+
+                if (checklistAnakContainer) {
                     const itemCheck = document.createElement('label');
                     itemCheck.className = "flex items-center gap-2 p-1 rounded hover:bg-slate-50 cursor-pointer text-xs font-medium text-slate-700";
                     itemCheck.innerHTML = `<input type="checkbox" value="${nama}" class="checkbox-anak rounded border-gray-300 text-indigo-600 w-3.5 h-3.5"><span>${nama}</span>`;
                     checklistAnakContainer.appendChild(itemCheck);
-                });
-            }
+                }
+
+                if (keluarPjSelect) {
+                    const opsiPj = document.createElement('option');
+                    opsiPj.value = nama;
+                    opsiPj.textContent = nama;
+                    keluarPjSelect.appendChild(opsiPj);
+                }
+            });
+
+            if (keluarPjSelect) keluarPjSelect.value = pjTerpilihLama;
 
             const logContainer = document.getElementById('log-container');
-            if (logContainer) {
-                logContainer.innerHTML = '';
-                const logVideoVafor = riwayatKas.filter(log => log.kategori && log.kategori.startsWith('Video Vafor'));
+            const belumBayarContainer = document.getElementById('list-belum-bayar-container');
 
-                const logKosongEl = document.getElementById('log-kosong');
-                if (logKosongEl) logKosongEl.style.display = logVideoVafor.length === 0 ? 'block' : 'none';
+            if (logContainer) logContainer.innerHTML = '';
+            if (belumBayarContainer) belumBayarContainer.innerHTML = '';
 
-                logVideoVafor.forEach((log) => {
+            let totalHarian = 0, totalMingguan = 0, totalDenda = 0, totalPengeluaran = 0;
+            let tunggakanKas = {};
+            let tunggakanDenda = {};
+
+            const logKosong = document.getElementById('log-kosong');
+            if (logKosong) logKosong.style.display = riwayatKas.length === 0 ? 'block' : 'none';
+
+            riwayatKas.forEach((log) => {
+                if (log.nama && NAMA_DISEMBUNYIKAN.includes(log.nama)) return;
+
+                const isPengeluaran = log.kategori && log.kategori.startsWith('Pengeluaran');
+                const isVideoVafor = log.kategori && log.kategori.startsWith('Video Vafor');
+
+                if (!['Kas Harian', 'Kas Mingguan', 'Denda Ga Setoran'].includes(log.kategori) && !isPengeluaran && !isVideoVafor) return;
+
+                if (log.status === 'Lunas' || log.status === 'Selesai') {
+                    if (log.kategori === 'Kas Harian') totalHarian += log.nominal;
+                    else if (log.kategori === 'Kas Mingguan') totalMingguan += log.nominal;
+                    else if (log.kategori === 'Denda Ga Setoran' || isVideoVafor) totalDenda += log.nominal;
+                    else if (isPengeluaran) totalPengeluaran += log.nominal;
+                } else if (log.status === 'Belum Bayar' || log.status === 'Belum Setor') {
+                    const isKasBiasa = ['Kas Harian', 'Kas Mingguan'].includes(log.kategori);
+
+                    if (isKasBiasa) {
+                        if (!tunggakanKas[log.nama]) tunggakanKas[log.nama] = {};
+                        if (!tunggakanKas[log.nama][log.kategori]) tunggakanKas[log.nama][log.kategori] = { kali: 0, totalNominal: 0 };
+                        tunggakanKas[log.nama][log.kategori].kali += 1;
+                        tunggakanKas[log.nama][log.kategori].totalNominal += log.nominal;
+                    } else {
+                        if (!tunggakanDenda[log.nama]) tunggakanDenda[log.nama] = {};
+                        if (!tunggakanDenda[log.nama][log.kategori]) tunggakanDenda[log.nama][log.kategori] = { kali: 0, totalNominal: 0 };
+                        tunggakanDenda[log.nama][log.kategori].kali += 1;
+                        tunggakanDenda[log.nama][log.kategori].totalNominal += log.nominal;
+                    }
+                }
+
+                if (logContainer) {
                     const cardLog = document.createElement('div');
-                    cardLog.className = `p-2 rounded-lg border text-xs bg-slate-50 border-slate-200`;
-                    const badgeStatus = log.status === 'Lunas' ? `<span class="bg-emerald-100 text-emerald-700 text-[9px] font-bold px-1.5 py-0.5 rounded">Sudah Setor</span>` : `<span class="bg-rose-100 text-rose-700 text-[9px] font-bold px-1.5 py-0.5 rounded">Belum Setor</span>`;
+                    let badgeStatus = '';
 
-                    // FITUR BARU: Tambahan elemen untuk menampilkan nama bendahara di dalam log card
-                    let infoBendahara = log.bendahara ? `<div class="text-[9px] text-slate-400 mt-1.5 pt-1 border-t border-slate-200/50 italic">Diinput oleh: <span class="font-semibold text-slate-500">${log.bendahara}</span></div>` : '';
+                    if (isPengeluaran) {
+                        cardLog.className = "p-2.5 rounded-lg border text-xs shadow-sm bg-orange-50/60 border-orange-200";
+                        badgeStatus = `<span class="bg-orange-100 text-orange-700 text-[9px] font-bold px-1.5 py-0.5 rounded">Uang Keluar</span>`;
+                    } else if (log.status === 'Belum Bayar' || log.status === 'Belum Setor') {
+                        cardLog.className = "p-2.5 rounded-lg border text-xs shadow-sm bg-rose-50/50 border-rose-100";
+                        badgeStatus = `<span class="bg-rose-100 text-rose-700 text-[9px] font-bold px-1.5 py-0.5 rounded">${log.status}</span>`;
+                    } else {
+                        cardLog.className = "p-2.5 rounded-lg border text-xs shadow-sm bg-slate-50 border-slate-200";
+                        badgeStatus = `<span class="bg-emerald-100 text-emerald-700 text-[9px] font-bold px-1.5 py-0.5 rounded">Lunas</span>`;
+                    }
+
+                    // Sub-fitur visual: Menampilkan log nama bendahara penginput data jika ada di database
+                    let infoBendahara = log.bendahara ? `<div class="text-[9px] text-slate-400 italic mt-0.5">Verified by: ${log.bendahara}</div>` : '';
 
                     cardLog.innerHTML = `
-                    <div class="flex justify-between text-[10px] text-slate-500 font-mono mb-1"><span>📅 ${log.keterangan || log.waktu}</span><span class="font-bold text-indigo-600">${log.kategori}</span></div>
-                    <div class="flex justify-between items-center"><div class="font-bold text-slate-800">${log.nama}</div>${badgeStatus}</div>
+                    <div class="flex justify-between text-[10px] text-slate-500 font-semibold font-mono mb-1">
+                        <span>📅 ${log.keterangan || log.waktu}</span>
+                        <span class="font-bold ${isPengeluaran ? 'text-orange-600' : 'text-indigo-600'}">${log.kategori}</span>
+                    </div>
+                    <div class="flex justify-between items-center"><div class="font-bold text-sm text-slate-800">${log.nama}</div>${badgeStatus}</div>
                     ${infoBendahara}
+                    <div class="flex justify-between items-center mt-1 pt-1 border-t border-dashed border-slate-200">
+                        <span class="text-slate-400 text-[10px] font-mono">Input: ${log.waktu}</span>
+                        <span class="font-bold ${isPengeluaran ? 'text-red-600' : 'text-slate-700'} text-xs">${isPengeluaran ? '-' : ''}${formatRupiah(log.nominal)}</span>
+                    </div>
                 `;
-                    logContainer.insertBefore(cardLog, logContainer.firstChild);
+                    logContainer.appendChild(cardLog);
+                }
+            });
+
+            // RENDERING SEPARASI LIST KAS & DENDA
+            if (belumBayarContainer) {
+                belumBayarContainer.innerHTML = '';
+
+                // --- BLOK 1: KAS BIASA ---
+                const boxKas = document.createElement('div');
+                boxKas.className = "p-3 bg-white border border-slate-200 rounded-xl space-y-3 shadow-sm mb-4";
+                let htmlNunggakKas = '', htmlLunasKas = '';
+
+                masterAnggota.forEach(nama => {
+                    if (!nama || NAMA_DISEMBUNYIKAN.includes(nama)) return;
+                    if (tunggakanKas[nama]) {
+                        let totalUtang = 0, detail = [];
+                        for (let kat in tunggakanKas[nama]) {
+                            totalUtang += tunggakanKas[nama][kat].totalNominal;
+                            detail.push(`${kat} (${tunggakanKas[nama][kat].kali}x)`);
+                        }
+                        htmlNunggakKas += `
+                        <div class="flex justify-between items-center bg-rose-50/60 p-2 rounded border border-rose-100 text-xs">
+                            <div><span class="font-bold text-slate-800">👤 ${nama}</span><div class="text-[10px] text-slate-500">${detail.join(', ')}</div></div>
+                            <span class="font-black text-rose-600 bg-white px-2 py-0.5 rounded shadow-sm">${formatRupiah(totalUtang)}</span>
+                        </div>`;
+                    } else {
+                        htmlLunasKas += `<span class="inline-block bg-emerald-50 text-emerald-700 border border-emerald-100 text-[10px] font-bold px-2 py-0.5 rounded-md">✓ ${nama}</span>`;
+                    }
                 });
 
-                // LOGIKA REKAP AKUMULASI DENDA
-                const rekapContainer = document.getElementById('rekap-akumulasi-container');
-                if (rekapContainer) {
-                    rekapContainer.innerHTML = '';
-                    let totalDendaPeletonkeseluruhan = 0;
-                    let htmlContentAnggota = '';
+                boxKas.innerHTML = `
+                <div class="border-b border-indigo-100 pb-1.5"><h3 class="font-black text-xs text-indigo-700 uppercase tracking-wide">📊 KAS (HARIAN & MINGGUAN)</h3></div>
+                <div><div class="text-[10px] font-bold text-rose-600 mb-1">🔴 BELUM BAYAR:</div><div class="space-y-1">${htmlNunggakKas || '<p class="text-[11px] text-emerald-600 italic">✨ Kas lunas semua!</p>'}</div></div>
+                <div class="pt-1"><div class="text-[10px] font-bold text-emerald-600 mb-1">🟢 SUDAH BAYAR (LUNAS):</div><div class="flex flex-wrap gap-1">${htmlLunasKas || '<p class="text-[11px] text-slate-400 italic">-</p>'}</div></div>
+            `;
+                belumBayarContainer.appendChild(boxKas);
 
-                    masterAnggota.forEach(nama => {
-                        if (!nama) return;
-                        let totalSudah = 0;
-                        let totalBelum = 0;
+                // --- BLOK 2: DENDA & VIDEO ---
+                const boxDenda = document.createElement('div');
+                boxDenda.className = "p-3 bg-white border border-slate-200 rounded-xl space-y-3 shadow-sm";
+                let htmlNunggakDenda = '', htmlLunasDenda = '';
 
-                        logVideoVafor.forEach(log => {
-                            if (log.nama === nama) {
-                                if (log.status === 'Lunas') totalSudah++;
-                                if (log.status === 'Belum Bayar' || log.status === 'Belum Setor') totalBelum++;
-                            }
-                        });
-
-                        let jumlahSudahBayarDenda = 0;
-                        riwayatKas.forEach(log => {
-                            if (log.nama === nama) {
-                                const kat = String(log.kategori || "").toLowerCase();
-                                const ket = String(log.keterangan || "").toLowerCase();
-                                const nom = Number(log.nominal || 0);
-
-                                const entriDendaVideo = (kat.includes("video") || ket.includes("video") || kat.includes("vafor"));
-                                const entriStatusBayar = (kat.includes("denda") || kat.includes("bayar"));
-
-                                if (nom > 0 && entriDendaVideo && entriStatusBayar) {
-                                    jumlahSudahBayarDenda += nom;
-                                }
-                            }
-                        });
-
-                        let grossDenda = totalBelum * DENDA_PER_ALPA;
-                        let sisaDenda = grossDenda - jumlahSudahBayarDenda;
-                        if (sisaDenda < 0) sisaDenda = 0;
-
-                        totalDendaPeletonkeseluruhan += sisaDenda;
-
-                        let badgeDendaHtml = '';
-                        if (grossDenda === 0) {
-                            badgeDendaHtml = `<span class="text-[10px] text-emerald-600 font-medium bg-emerald-50 border border-emerald-100 px-1.5 py-0.5 rounded-md w-fit mt-1">✨ Aman / Bebas Denda</span>`;
-                        } else if (sisaDenda <= 0) {
-                            badgeDendaHtml = `<span class="text-[10px] text-emerald-700 font-bold bg-emerald-100 border border-emerald-200 px-1.5 py-0.5 rounded-md w-fit mt-1">✅ Denda Lunas (Dibayar Rp ${jumlahSudahBayarDenda.toLocaleString('id-ID')})</span>`;
-                        } else {
-                            badgeDendaHtml = `<span class="text-[10px] text-rose-600 font-bold bg-rose-50 border border-rose-100 px-1.5 py-0.5 rounded-md w-fit mt-1">Wajib Bayar: Rp ${sisaDenda.toLocaleString('id-ID')}</span>`;
-                            if (jumlahSudahBayarDenda > 0) {
-                                badgeDendaHtml += `<span class="text-[9px] text-slate-500 italic block mt-0.5">(Dicicil: Rp ${jumlahSudahBayarDenda.toLocaleString('id-ID')} dari Rp ${grossDenda.toLocaleString('id-ID')})</span>`;
-                            }
+                masterAnggota.forEach(nama => {
+                    if (!nama || NAMA_DISEMBUNYIKAN.includes(nama)) return;
+                    if (tunggakanDenda[nama]) {
+                        let totalUtang = 0, detail = [];
+                        for (let kat in tunggakanDenda[nama]) {
+                            totalUtang += tunggakanDenda[nama][kat].totalNominal;
+                            detail.push(`${kat} (${tunggakanDenda[nama][kat].kali}x)`);
                         }
-
-                        htmlContentAnggota += `
-                        <div class="p-2.5 bg-white border border-slate-200 rounded-xl flex justify-between items-center text-xs shadow-sm hover:border-slate-300 transition">
-                            <div class="flex flex-col gap-0.5">
-                                <span class="font-bold text-slate-800">👤 ${nama}</span>
-                                ${badgeDendaHtml}
-                            </div>
-                            <div class="flex gap-1.5 font-mono text-[10px]">
-                                <span class="bg-emerald-50 border border-emerald-200 text-emerald-700 font-black px-2 py-0.5 rounded-md">✅ ${totalSudah}x</span>
-                                <span class="bg-rose-50 border border-rose-200 text-rose-700 font-black px-2 py-0.5 rounded-md">❌ ${totalBelum}x</span>
-                            </div>
-                        </div>
-                    `;
-                    });
-
-                    if (masterAnggota.length > 0) {
-                        const ringkasanCard = document.createElement('div');
-                        ringkasanCard.className = "p-3 bg-slate-900 text-white rounded-xl mb-3 flex justify-between items-center shadow-md";
-                        ringkasanCard.innerHTML = `
-                        <div>
-                            <p class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Total Kas Denda Belum Setor</p>
-                            <p class="text-base font-black text-amber-400 font-mono">Rp ${totalDendaPeletonkeseluruhan.toLocaleString('id-ID')}</p>
-                        </div>
-                        <div class="bg-slate-800 p-2 rounded-lg text-sm">💰</div>
-                    `;
-                        rekapContainer.appendChild(ringkasanCard);
-
-                        const listWrapper = document.createElement('div');
-                        listWrapper.className = "space-y-2 max-h-[380px] overflow-y-auto pr-0.5";
-                        listWrapper.innerHTML = htmlContentAnggota;
-                        rekapContainer.appendChild(listWrapper);
+                        htmlNunggakDenda += `
+                        <div class="flex justify-between items-center bg-red-50/60 p-2 rounded border border-red-100 text-xs">
+                            <div><span class="font-bold text-slate-800">👤 ${nama}</span><div class="text-[10px] text-slate-500">${detail.join(', ')}</div></div>
+                            <span class="font-black text-red-600 bg-white px-2 py-0.5 rounded shadow-sm">${formatRupiah(totalUtang)}</span>
+                        </div>`;
                     } else {
-                        rekapContainer.innerHTML = `<p class="text-center text-slate-400 italic text-xs py-4">Daftar anggota masih kosong.</p>`;
+                        htmlLunasDenda += `<span class="inline-block bg-slate-50 text-slate-600 border border-slate-200 text-[10px] font-bold px-2 py-0.5 rounded-md">✓ ${nama}</span>`;
                     }
-                }
+                });
 
-                // MONITORING LIVE BATCH (ATAS)
-                const containerSudah = document.getElementById('list-video-sudah');
-                const containerBelum = document.getElementById('list-video-belum');
-                const periodeLabel = document.getElementById('video-vafor-periode');
-                const filterSelect = document.getElementById('filter-video-tanggal');
-
-                if (containerSudah && containerBelum && periodeLabel && filterSelect) {
-                    containerSudah.innerHTML = '';
-                    containerBelum.innerHTML = '';
-
-                    if (logVideoVafor.length > 0) {
-                        const semuaWaktuUnik = [...new Set(logVideoVafor.map(log => log.waktu))];
-
-                        if (filterSelect.options.length - 1 !== semuaWaktuUnik.length) {
-                            filterSelect.innerHTML = '<option value="">-- Pilih Batch Tugas --</option>';
-                            semuaWaktuUnik.forEach((waktu) => {
-                                const opt = document.createElement('option');
-                                opt.value = waktu;
-                                const contohLog = logVideoVafor.find(l => l.waktu === waktu);
-                                opt.textContent = `${contohLog.kategori} - ${contohLog.keterangan || "Otomatis"}`;
-                                filterSelect.appendChild(opt);
-                            });
-                            filterSelect.value = semuaWaktuUnik[semuaWaktuUnik.length - 1];
-                        }
-
-                        const waktuTerpilih = filterSelect.value || semuaWaktuUnik[semuaWaktuUnik.length - 1];
-                        const contohLogTerpilih = logVideoVafor.find(l => l.waktu === waktuTerpilih);
-                        periodeLabel.textContent = contohLogTerpilih ? `${contohLogTerpilih.kategori} (${contohLogTerpilih.keterangan || "Otomatis"})` : "Terpilih";
-
-                        const logBatchTerpilih = logVideoVafor.filter(log => log.waktu === waktuTerpilih);
-                        let sudahSetor = [], belumSetor = [];
-
-                        logBatchTerpilih.forEach(log => {
-                            if (log.status === 'Lunas') sudahSetor.push(log.nama);
-                            else belumSetor.push(log.nama);
-                        });
-
-                        masterAnggota.forEach(nama => {
-                            if (nama && !sudahSetor.includes(nama) && !belumSetor.includes(nama)) belumSetor.push(nama);
-                        });
-
-                        document.getElementById('count-video-sudah').textContent = `${sudahSetor.length} Orang`;
-                        document.getElementById('count-video-belum').textContent = `${belumSetor.length} Orang`;
-
-                        sudahSetor.forEach(nama => {
-                            containerSudah.innerHTML += `<span class="bg-emerald-100 text-emerald-800 text-[11px] font-bold px-2 py-1 rounded-lg border border-emerald-200 shadow-sm">${nama}</span>`;
-                        });
-                        belumSetor.forEach(nama => {
-                            containerBelum.innerHTML += `<span class="bg-rose-100 text-rose-800 text-[11px] font-bold px-2 py-1 rounded-lg border border-rose-200 shadow-sm">${nama}</span>`;
-                        });
-                    } else {
-                        periodeLabel.textContent = "Belum Ada Data";
-                        containerSudah.innerHTML = `<span class="text-slate-400 italic text-[11px]">Belum ada data.</span>`;
-                        containerBelum.innerHTML = `<span class="text-slate-400 italic text-[11px]">Belum ada data.</span>`;
-                    }
-                }
+                boxDenda.innerHTML = `
+                <div class="border-b border-red-100 pb-1.5"><h3 class="font-black text-xs text-red-700 uppercase tracking-wide">⚠️ DENDA & VIDEO VAFOR</h3></div>
+                <div><div class="text-[10px] font-bold text-rose-600 mb-1">🔴 BELUM SETOR:</div><div class="space-y-1">${htmlNunggakDenda || '<p class="text-[11px] text-emerald-600 italic">✨ Aman, bebas denda bray!</p>'}</div></div>
+                <div class="pt-1"><div class="text-[10px] font-bold text-slate-600 mb-1">🟢 BEBAS DENDA (LUNAS):</div><div class="flex flex-wrap gap-1">${htmlLunasDenda || '<p class="text-[11px] text-slate-400 italic">-</p>'}</div></div>
+            `;
+                belumBayarContainer.appendChild(boxDenda);
             }
+
+            const totalPemasukan = totalHarian + totalMingguan + totalDenda;
+            const sisaSaldoUtama = totalPemasukan - totalPengeluaran;
+            let totalOrangNunggak = new Set([...Object.keys(tunggakanKas), ...Object.keys(tunggakanDenda)]).size;
+
+            const elHarian = document.getElementById('stat-kas-harian'); if (elHarian) elHarian.textContent = formatRupiah(totalHarian);
+            const elMingguan = document.getElementById('stat-kas-mingguan'); if (elMingguan) elMingguan.textContent = formatRupiah(totalMingguan);
+            const elDenda = document.getElementById('stat-denda'); if (elDenda) elDenda.textContent = formatRupiah(totalDenda);
+            const elKeluar = document.getElementById('stat-pengeluaran'); if (elKeluar) elKeluar.textContent = formatRupiah(totalPengeluaran);
+            const elSaldo = document.getElementById('stat-saldo-utama'); if (elSaldo) elSaldo.textContent = formatRupiah(sisaSaldoUtama);
+            const elTunggak = document.getElementById('stat-tunggakan'); if (elTunggak) elTunggak.textContent = `${totalOrangNunggak} Orang Nunggak`;
         }
 
-        // MEMASTIKAN BERJALAN SETELAH ELEMENT HTML TERSEDIA
-        window.addEventListener('DOMContentLoaded', () => {
-            const inputPinCustom = document.getElementById('input-pin-custom');
-            if (inputPinCustom) {
-                inputPinCustom.addEventListener('keypress', function (e) {
-                    if (e.key === 'Enter') submitPinOtorisasi();
+        const formAnggota = document.getElementById('form-anggota');
+        if (formAnggota) {
+            formAnggota.addEventListener('submit', function (e) {
+                e.preventDefault();
+                const inputNama = document.getElementById('nama-baru');
+                if (!inputNama) return;
+                const nama = inputNama.value.trim();
+                if (!nama) return;
+
+                panggilPinModal(async function () {
+                    tampilkanLoading(true);
+                    try {
+                        let response = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ aksi: 'tambahAnggota', nama: nama }) });
+                        inputNama.value = '';
+                        await muatDataDariCloud();
+                    } catch (error) { alert("❌ Gagal mengirim anggota baru!"); }
+                    finally { tampilkanLoading(false); }
                 });
-            }
+            });
+        }
 
-            const formSetorMassal = document.getElementById('form-setor-massal');
-            if (formSetorMassal) {
-                formSetorMassal.addEventListener('submit', function (e) {
-                    e.preventDefault();
-                    panggilPinModal(async function () {
-                        tampilkanLoading(true);
-                        try {
-                            const kategori = document.getElementById('massal-kategori').value;
-                            let tanggalFinalTeks = modeTanggal === 'auto' ? document.getElementById('massal-keterangan').value : konversiTanggalManualKeTeks(document.getElementById('massal-tanggal-manual').value);
-                            const waktuAkuratSistem = dapatkanWaktuLengkap();
+        const formSetorMassal = document.getElementById('form-setor-massal');
+        if (formSetorMassal) {
+            formSetorMassal.addEventListener('submit', function (e) {
+                e.preventDefault();
+                if (masterAnggota.length === 0) { alert("Isi daftar anggota dulu bro!"); return; }
 
-                            const checkboxes = document.querySelectorAll('.checkbox-anak:checked');
-                            let daftarNamaLunas = [];
-                            checkboxes.forEach(cb => daftarNamaLunas.push(cb.value));
+                panggilPinModal(async function () {
+                    tampilkanLoading(true);
+                    try {
+                        const nominalPilihanEl = document.querySelector('input[name="nominal-pilihan"]:checked');
+                        const nominalPilihan = nominalPilihanEl ? nominalPilihanEl.value : '2000';
+                        let nominal;
 
-                            let dataSetoranGlobal = [];
-                            masterAnggota.forEach(nama => {
-                                if (!nama) return;
-                                let status = daftarNamaLunas.includes(nama) ? 'Lunas' : 'Belum Setor'; // Disamakan 'Belum Setor' agar terbaca Apps Script
-
-                                // FITUR BARU: Data sekarang mengirim 'bendahara: namaBendaharaAktif'
-                                dataSetoranGlobal.push({ waktu: waktuAkuratSistem, nama: nama, kategori: kategori, nominal: 0, keterangan: tanggalFinalTeks, status: status, bendahara: namaBendaharaAktif });
-                            });
-
-                            await fetch(API_URL, { method: 'POST', body: JSON.stringify({ aksi: 'setorMassal', data: dataSetoranGlobal }) });
-                            centangSemua(false);
-                            setModeTanggal('auto');
-
-                            const filterSelect = document.getElementById('filter-video-tanggal');
-                            if (filterSelect) filterSelect.innerHTML = '<option value="">-- Pilih Batch Tugas --</option>';
-
-                            await muatDataDariCloud();
-                            alert(`🔒 Otorisasi Sukses: Data setoran disimpan oleh ${namaBendaharaAktif}!`);
-                        } catch (error) {
-                            alert("❌ Gagal menyimpan data!\nDetail: " + error.message);
-                        } finally {
-                            tampilkanLoading(false);
+                        if (nominalPilihan === 'manual') {
+                            const inputManual = document.getElementById('massal-nominal-manual');
+                            nominal = inputManual ? parseInt(inputManual.value) : 0;
+                            if (!nominal || nominal <= 0) {
+                                alert("⚠️ Harap masukkan angka nominal manual yang valid!");
+                                tampilkanLoading(false);
+                                return;
+                            }
+                        } else {
+                            nominal = parseInt(nominalPilihan);
                         }
-                    });
+
+                        const kategoriEl = document.getElementById('massal-kategori');
+                        const kategori = kategoriEl ? kategoriEl.value : 'Kas Harian';
+
+                        const ketEl = document.getElementById('massal-keterangan');
+                        const tglManEl = document.getElementById('massal-tanggal-manual');
+                        let tanggalFinalTeks = modeTanggal === 'auto' ? (ketEl ? ketEl.value : '') : konversiTanggalManualKeTeks(tglManEl ? tglManEl.value : '');
+                        const waktuAkuratSistem = dapatkanWaktuLengkap();
+
+                        const checkboxes = document.querySelectorAll('.checkbox-anak:checked');
+                        let daftarNamaLunas = [];
+                        checkboxes.forEach(cb => daftarNamaLunas.push(cb.value));
+
+                        let dataSetoranGlobal = [];
+                        masterAnggota.forEach(nama => {
+                            if (!nama || NAMA_DISEMBUNYIKAN.includes(nama)) return;
+                            let status = daftarNamaLunas.includes(nama) ? 'Lunas' : 'Belum Bayar';
+
+                            // 🔥 MODIFIKASI: Sekarang ikut mengirimkan log penanda bendahara aktif ke kolom G
+                            dataSetoranGlobal.push({
+                                waktu: waktuAkuratSistem,
+                                nama: nama,
+                                kategori: kategori,
+                                nominal: nominal,
+                                keterangan: tanggalFinalTeks,
+                                status: status,
+                                bendahara: "Bendahara Utama"
+                            });
+                        });
+
+                        await fetch(API_URL, { method: 'POST', body: JSON.stringify({ aksi: 'setorMassal', data: dataSetoranGlobal }) });
+                        centangSemua(false);
+
+                        const radio2000 = document.querySelector('input[name="nominal-pilihan"][value="2000"]');
+                        if (radio2000) radio2000.checked = true;
+                        toggleNominalManual();
+
+                        setModeTanggal('auto');
+                        await muatDataDariCloud();
+                        alert("🔒 Otorisasi Sukses: Data kas berhasil disimpan!");
+                    } catch (error) { alert("❌ Gagal menyimpan data!"); }
+                    finally { tampilkanLoading(false); }
                 });
-            }
+            });
+        }
 
-            const filterSelect = document.getElementById('filter-video-tanggal');
-            if (filterSelect) {
-                filterSelect.addEventListener('change', renderAplikasi);
-            }
+        const formPengeluaran = document.getElementById('form-pengeluaran');
+        if (formPengeluaran) {
+            formPengeluaran.addEventListener('submit', function (e) {
+                e.preventDefault();
+                const keluarPj = document.getElementById('keluar-pj');
+                const keluarKat = document.getElementById('keluar-kategori');
+                const keluarNom = document.getElementById('keluar-nominal');
+                const keluarKep = document.getElementById('keluar-keperluan');
 
-            // Jalankan fetch data pertama kali saat DOM siap
-            muatDataDariCloud();
-        });
+                const pjNama = keluarPj ? keluarPj.value : '';
+                const kategoriKeluar = keluarKat ? keluarKat.value : 'Pengeluaran';
+                const nominalKeluar = keluarNom ? parseInt(keluarNom.value) : 0;
+                const keperluanKeluar = keluarKep ? keluarKep.value.trim() : '';
+
+                if (!pjNama) { alert("⚠️ Pilih PJ Penanggung Jawab dulu, bro!"); return; }
+                if (!nominalKeluar || nominalKeluar <= 0) { alert("⚠️ Masukkan nominal pengeluaran yang valid!"); return; }
+                if (!keperluanKeluar) { alert("⚠️ Isi keterangan keperluan pengeluaran!"); return; }
+
+                panggilPinModal(async function () {
+                    tampilkanLoading(true);
+                    try {
+                        const waktuSistem = dapatkanWaktuLengkap();
+                        const tanggalHariIni = new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+
+                        let dataPengeluaran = [{
+                            waktu: waktuSistem,
+                            nama: pjNama,
+                            kategori: kategoriKeluar,
+                            nominal: nominalKeluar,
+                            keterangan: `${tanggalHariIni} | ${keperluanKeluar}`,
+                            status: 'Selesai',
+                            bendahara: "Bendahara Utama" // 🔥 MODIFIKASI: Input kolom bendahara otomatis
+                        }];
+
+                        await fetch(API_URL, { method: 'POST', body: JSON.stringify({ aksi: 'setorMassal', data: dataPengeluaran }) });
+
+                        if (keluarNom) keluarNom.value = '';
+                        if (keluarKep) keluarKep.value = '';
+                        switchTab('masuk');
+
+                        await muatDataDariCloud();
+                        alert("🔒 Otorisasi Sukses: Data pengeluaran berhasil dicatat ke cloud database!");
+                    } catch (error) {
+                        alert("❌ Gagal mengirim data pengeluaran!");
+                    } finally {
+                        tampilkanLoading(false);
+                    }
+                });
+            });
+        }
 
         function centangSemua(status) {
             document.querySelectorAll('.checkbox-anak').forEach(cb => cb.checked = status);

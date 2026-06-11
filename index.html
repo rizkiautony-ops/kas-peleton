@@ -440,10 +440,11 @@
             return `${tanggalFormat} | Jam ${jamFormat}`;
         }
 
+        // 🔥 PERBAIKAN BUG: Kata 'Pediatric =' yang bikin crash sudah dihapus total di sini
         function aturTampilanTanggalSistem() {
             const sekarang = new Date();
             const el = document.getElementById('massal-keterangan');
-            if (el) el.value = Pediatric = sekarang.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+            if (el) el.value = sekarang.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
         }
 
         function panggilPinModal(callbackAksi) {
@@ -483,12 +484,16 @@
             }
         }
 
-        const inputPinCustomEl = document.getElementById('input-pin-custom');
-        if (inputPinCustomEl) {
-            inputPinCustomEl.addEventListener('keypress', function (e) {
-                if (e.key === 'Enter') submitPinOtorisasi();
-            });
-        }
+        // Menggunakan window load event atau pengecekan manual agar tidak error saat DOM belum siap
+        document.addEventListener("DOMContentLoaded", function () {
+            const inputPinCustomEl = document.getElementById('input-pin-custom');
+            if (inputPinCustomEl) {
+                inputPinCustomEl.addEventListener('keypress', function (e) {
+                    if (e.key === 'Enter') submitPinOtorisasi();
+                });
+            }
+            muatDataDariCloud();
+        });
 
         async function muatDataDariCloud() {
             tampilkanLoading(true);
@@ -509,7 +514,7 @@
             tampilkanLoading(false);
         }
 
-        // 🔥 SISTEM RENDER UTAMA (SUDAH DIPISAH KAS & DENDA, DAN FILTER SEMBUNYI)
+        // 🔥 SISTEM RENDER UTAMA
         function renderAplikasi() {
             const listAnggotaMaster = document.getElementById('list-anggota-master');
             const checklistAnakContainer = document.getElementById('checklist-anak-container');
@@ -521,9 +526,9 @@
             if (checklistAnakContainer) checklistAnakContainer.innerHTML = '';
             if (keluarPjSelect) keluarPjSelect.innerHTML = '<option value="">-- Pilih Anggota Peleton --</option>';
 
-            // Render Daftar Anggota Aktif (Yang tidak disembunyikan)
+            // Render Daftar Anggota Aktif
             masterAnggota.forEach((nama) => {
-                if (!nama || NAMA_DISEMBUNYIKAN.includes(nama)) return; // Filter Sembunyi
+                if (!nama || NAMA_DISEMBUNYIKAN.includes(nama)) return;
 
                 if (listAnggotaMaster) {
                     const item = document.createElement('div');
@@ -556,8 +561,6 @@
             if (belumBayarContainer) belumBayarContainer.innerHTML = '';
 
             let totalHarian = 0, totalMingguan = 0, totalDenda = 0, totalPengeluaran = 0;
-
-            // Penampung Tunggakan Terpisah
             let tunggakanKas = {};
             let tunggakanDenda = {};
 
@@ -565,7 +568,7 @@
             if (logKosong) logKosong.style.display = riwayatKas.length === 0 ? 'block' : 'none';
 
             riwayatKas.forEach((log) => {
-                if (log.nama && NAMA_DISEMBUNYIKAN.includes(log.nama)) return; // Filter Sembunyi riwayat
+                if (log.nama && NAMA_DISEMBUNYIKAN.includes(log.nama)) return;
 
                 const isPengeluaran = log.kategori && log.kategori.startsWith('Pengeluaran');
                 const isVideoVafor = log.kategori && log.kategori.startsWith('Video Vafor');
@@ -608,34 +611,36 @@
                         badgeStatus = `<span class="bg-emerald-100 text-emerald-700 text-[9px] font-bold px-1.5 py-0.5 rounded">Lunas</span>`;
                     }
 
+                    // Sub-fitur visual: Menampilkan log nama bendahara penginput data jika ada di database
+                    let infoBendahara = log.bendahara ? `<div class="text-[9px] text-slate-400 italic mt-0.5">Verified by: ${log.bendahara}</div>` : '';
+
                     cardLog.innerHTML = `
-                        <div class="flex justify-between text-[10px] text-slate-500 font-semibold font-mono mb-1">
-                            <span>📅 ${log.keterangan || log.waktu}</span>
-                            <span class="font-bold ${isPengeluaran ? 'text-orange-600' : 'text-indigo-600'}">${log.kategori}</span>
-                        </div>
-                        <div class="flex justify-between items-center"><div class="font-bold text-sm text-slate-800">${log.nama}</div>${badgeStatus}</div>
-                        <div class="flex justify-between items-center mt-1 pt-1 border-t border-dashed border-slate-200">
-                            <span class="text-slate-400 text-[10px] font-mono">Input: ${log.waktu}</span>
-                            <span class="font-bold ${isPengeluaran ? 'text-red-600' : 'text-slate-700'} text-xs">${isPengeluaran ? '-' : ''}${formatRupiah(log.nominal)}</span>
-                        </div>
-                    `;
+                    <div class="flex justify-between text-[10px] text-slate-500 font-semibold font-mono mb-1">
+                        <span>📅 ${log.keterangan || log.waktu}</span>
+                        <span class="font-bold ${isPengeluaran ? 'text-orange-600' : 'text-indigo-600'}">${log.kategori}</span>
+                    </div>
+                    <div class="flex justify-between items-center"><div class="font-bold text-sm text-slate-800">${log.nama}</div>${badgeStatus}</div>
+                    ${infoBendahara}
+                    <div class="flex justify-between items-center mt-1 pt-1 border-t border-dashed border-slate-200">
+                        <span class="text-slate-400 text-[10px] font-mono">Input: ${log.waktu}</span>
+                        <span class="font-bold ${isPengeluaran ? 'text-red-600' : 'text-slate-700'} text-xs">${isPengeluaran ? '-' : ''}${formatRupiah(log.nominal)}</span>
+                    </div>
+                `;
                     logContainer.appendChild(cardLog);
                 }
             });
 
-            // 🔥 RENDERING SEPARASI LIST SUDAH VS BELUM BAYAR (KAS & DENDA)
+            // RENDERING SEPARASI LIST KAS & DENDA
             if (belumBayarContainer) {
                 belumBayarContainer.innerHTML = '';
 
-                // --- BLOK 1: KAS BIASA (HARIAN & MINGGUAN) ---
+                // --- BLOK 1: KAS BIASA ---
                 const boxKas = document.createElement('div');
                 boxKas.className = "p-3 bg-white border border-slate-200 rounded-xl space-y-3 shadow-sm mb-4";
-
                 let htmlNunggakKas = '', htmlLunasKas = '';
 
                 masterAnggota.forEach(nama => {
                     if (!nama || NAMA_DISEMBUNYIKAN.includes(nama)) return;
-
                     if (tunggakanKas[nama]) {
                         let totalUtang = 0, detail = [];
                         for (let kat in tunggakanKas[nama]) {
@@ -643,31 +648,29 @@
                             detail.push(`${kat} (${tunggakanKas[nama][kat].kali}x)`);
                         }
                         htmlNunggakKas += `
-                            <div class="flex justify-between items-center bg-rose-50/60 p-2 rounded border border-rose-100 text-xs">
-                                <div><span class="font-bold text-slate-800">👤 ${nama}</span><div class="text-[10px] text-slate-500">${detail.join(', ')}</div></div>
-                                <span class="font-black text-rose-600 bg-white px-2 py-0.5 rounded shadow-sm">${formatRupiah(totalUtang)}</span>
-                            </div>`;
+                        <div class="flex justify-between items-center bg-rose-50/60 p-2 rounded border border-rose-100 text-xs">
+                            <div><span class="font-bold text-slate-800">👤 ${nama}</span><div class="text-[10px] text-slate-500">${detail.join(', ')}</div></div>
+                            <span class="font-black text-rose-600 bg-white px-2 py-0.5 rounded shadow-sm">${formatRupiah(totalUtang)}</span>
+                        </div>`;
                     } else {
                         htmlLunasKas += `<span class="inline-block bg-emerald-50 text-emerald-700 border border-emerald-100 text-[10px] font-bold px-2 py-0.5 rounded-md">✓ ${nama}</span>`;
                     }
                 });
 
                 boxKas.innerHTML = `
-                    <div class="border-b border-indigo-100 pb-1.5"><h3 class="font-black text-xs text-indigo-700 uppercase tracking-wide">📊 KAS (HARIAN & MINGGUAN)</h3></div>
-                    <div><div class="text-[10px] font-bold text-rose-600 mb-1">🔴 BELUM BAYAR:</div><div class="space-y-1">${htmlNunggakKas || '<p class="text-[11px] text-emerald-600 italic">✨ Kas lunas semua!</p>'}</div></div>
-                    <div class="pt-1"><div class="text-[10px] font-bold text-emerald-600 mb-1">🟢 SUDAH BAYAR (LUNAS):</div><div class="flex flex-wrap gap-1">${htmlLunasKas || '<p class="text-[11px] text-slate-400 italic">-</p>'}</div></div>
-                `;
+                <div class="border-b border-indigo-100 pb-1.5"><h3 class="font-black text-xs text-indigo-700 uppercase tracking-wide">📊 KAS (HARIAN & MINGGUAN)</h3></div>
+                <div><div class="text-[10px] font-bold text-rose-600 mb-1">🔴 BELUM BAYAR:</div><div class="space-y-1">${htmlNunggakKas || '<p class="text-[11px] text-emerald-600 italic">✨ Kas lunas semua!</p>'}</div></div>
+                <div class="pt-1"><div class="text-[10px] font-bold text-emerald-600 mb-1">🟢 SUDAH BAYAR (LUNAS):</div><div class="flex flex-wrap gap-1">${htmlLunasKas || '<p class="text-[11px] text-slate-400 italic">-</p>'}</div></div>
+            `;
                 belumBayarContainer.appendChild(boxKas);
 
-                // --- BLOK 2: DENDA & VIDEO VAFOR ---
+                // --- BLOK 2: DENDA & VIDEO ---
                 const boxDenda = document.createElement('div');
                 boxDenda.className = "p-3 bg-white border border-slate-200 rounded-xl space-y-3 shadow-sm";
-
                 let htmlNunggakDenda = '', htmlLunasDenda = '';
 
                 masterAnggota.forEach(nama => {
                     if (!nama || NAMA_DISEMBUNYIKAN.includes(nama)) return;
-
                     if (tunggakanDenda[nama]) {
                         let totalUtang = 0, detail = [];
                         for (let kat in tunggakanDenda[nama]) {
@@ -675,24 +678,23 @@
                             detail.push(`${kat} (${tunggakanDenda[nama][kat].kali}x)`);
                         }
                         htmlNunggakDenda += `
-                            <div class="flex justify-between items-center bg-red-50/60 p-2 rounded border border-red-100 text-xs">
-                                <div><span class="font-bold text-slate-800">👤 ${nama}</span><div class="text-[10px] text-slate-500">${detail.join(', ')}</div></div>
-                                <span class="font-black text-red-600 bg-white px-2 py-0.5 rounded shadow-sm">${formatRupiah(totalUtang)}</span>
-                            </div>`;
+                        <div class="flex justify-between items-center bg-red-50/60 p-2 rounded border border-red-100 text-xs">
+                            <div><span class="font-bold text-slate-800">👤 ${nama}</span><div class="text-[10px] text-slate-500">${detail.join(', ')}</div></div>
+                            <span class="font-black text-red-600 bg-white px-2 py-0.5 rounded shadow-sm">${formatRupiah(totalUtang)}</span>
+                        </div>`;
                     } else {
                         htmlLunasDenda += `<span class="inline-block bg-slate-50 text-slate-600 border border-slate-200 text-[10px] font-bold px-2 py-0.5 rounded-md">✓ ${nama}</span>`;
                     }
                 });
 
                 boxDenda.innerHTML = `
-                    <div class="border-b border-red-100 pb-1.5"><h3 class="font-black text-xs text-red-700 uppercase tracking-wide">⚠️ DENDA & VIDEO VAFOR</h3></div>
-                    <div><div class="text-[10px] font-bold text-rose-600 mb-1">🔴 BELUM SETOR:</div><div class="space-y-1">${htmlNunggakDenda || '<p class="text-[11px] text-emerald-600 italic">✨ Aman, bebas denda bray!</p>'}</div></div>
-                    <div class="pt-1"><div class="text-[10px] font-bold text-slate-600 mb-1">🟢 BEBAS DENDA (LUNAS):</div><div class="flex flex-wrap gap-1">${htmlLunasDenda || '<p class="text-[11px] text-slate-400 italic">-</p>'}</div></div>
-                `;
+                <div class="border-b border-red-100 pb-1.5"><h3 class="font-black text-xs text-red-700 uppercase tracking-wide">⚠️ DENDA & VIDEO VAFOR</h3></div>
+                <div><div class="text-[10px] font-bold text-rose-600 mb-1">🔴 BELUM SETOR:</div><div class="space-y-1">${htmlNunggakDenda || '<p class="text-[11px] text-emerald-600 italic">✨ Aman, bebas denda bray!</p>'}</div></div>
+                <div class="pt-1"><div class="text-[10px] font-bold text-slate-600 mb-1">🟢 BEBAS DENDA (LUNAS):</div><div class="flex flex-wrap gap-1">${htmlLunasDenda || '<p class="text-[11px] text-slate-400 italic">-</p>'}</div></div>
+            `;
                 belumBayarContainer.appendChild(boxDenda);
             }
 
-            // Update info counter widget box kecil
             const totalPemasukan = totalHarian + totalMingguan + totalDenda;
             const sisaSaldoUtama = totalPemasukan - totalPengeluaran;
             let totalOrangNunggak = new Set([...Object.keys(tunggakanKas), ...Object.keys(tunggakanDenda)]).size;
@@ -765,9 +767,19 @@
 
                         let dataSetoranGlobal = [];
                         masterAnggota.forEach(nama => {
-                            if (!nama || NAMA_DISEMBUNYIKAN.includes(nama)) return; // Filter Sembunyi
+                            if (!nama || NAMA_DISEMBUNYIKAN.includes(nama)) return;
                             let status = daftarNamaLunas.includes(nama) ? 'Lunas' : 'Belum Bayar';
-                            dataSetoranGlobal.push({ waktu: waktuAkuratSistem, nama: nama, kategori: kategori, nominal: nominal, keterangan: tanggalFinalTeks, status: status });
+
+                            // 🔥 MODIFIKASI: Sekarang ikut mengirimkan log penanda bendahara aktif ke kolom G
+                            dataSetoranGlobal.push({
+                                waktu: waktuAkuratSistem,
+                                nama: nama,
+                                kategori: kategori,
+                                nominal: nominal,
+                                keterangan: tanggalFinalTeks,
+                                status: status,
+                                bendahara: "Bendahara Utama"
+                            });
                         });
 
                         await fetch(API_URL, { method: 'POST', body: JSON.stringify({ aksi: 'setorMassal', data: dataSetoranGlobal }) });
@@ -816,7 +828,8 @@
                             kategori: kategoriKeluar,
                             nominal: nominalKeluar,
                             keterangan: `${tanggalHariIni} | ${keperluanKeluar}`,
-                            status: 'Selesai'
+                            status: 'Selesai',
+                            bendahara: "Bendahara Utama" // 🔥 MODIFIKASI: Input kolom bendahara otomatis
                         }];
 
                         await fetch(API_URL, { method: 'POST', body: JSON.stringify({ aksi: 'setorMassal', data: dataPengeluaran }) });
@@ -839,8 +852,6 @@
         function centangSemua(status) {
             document.querySelectorAll('.checkbox-anak').forEach(cb => cb.checked = status);
         }
-
-        muatDataDariCloud();
     </script>
 </body>
 
