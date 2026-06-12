@@ -86,8 +86,8 @@
                 </div>
                 <div>
                     <h1 class="text-xl font-black text-slate-900 tracking-tight uppercase">Setoran Video Vafor</h1>
-                    <p class="text-[10px] text-slate-400 mt-0.5 tracking-widest font-bold uppercase">Peleton A
-                        Management System</p>
+                    <!-- <p class="text-[10px] text-slate-400 mt-0.5 tracking-widest font-bold uppercase">Peleton A
+                        Management System</p> -->
                 </div>
             </div>
             <a href="index.html"
@@ -172,15 +172,15 @@
                         <select id="video-nama-tugas"
                             class="w-full p-2.5 text-xs border border-slate-200 rounded-xl bg-white font-bold text-slate-800 focus:ring-2 focus:ring-slate-200 focus:outline-none">
                             <option value="Video Vafor 1">Video Vafor 1</option>
-                            <option value="Video Vafor 2">Video Vafor 2</option>
+                            <!-- <option value="Video Vafor 2">Video Vafor 2</option>
                             <option value="Video Vafor 3">Video Vafor 3</option>
-                            <option value="Video Vafor 4">Video Vafor 4</option>
+                            <option value="Video Vafor 4">Video Vafor 4</option> -->
                         </select>
                     </div>
 
                     <div>
                         <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Nominal
-                            Denda Sistem</label>
+                            </label>
                         <div class="grid grid-cols-2 gap-2 bg-slate-200/50 p-1 rounded-xl">
                             <label class="cursor-pointer text-center">
                                 <input type="radio" name="video-nominal-pilihan" value="5000" checked
@@ -203,14 +203,14 @@
                     <div>
                         <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Teks
                             Keterangan / Tanggal Log</label>
-                        <input type="text" id="massal-keterangan" value="Otomatis Mengikuti Waktu Realtime" readonly
-                            class="w-full p-2.5 text-xs border rounded-xl bg-slate-200/50 text-slate-500 font-semibold border-slate-200 cursor-not-allowed">
+                        <input type="date" id="massal-keterangan"
+                            class="w-full p-2.5 text-xs border rounded-xl bg-white text-slate-800 font-semibold border-slate-200 focus:ring-2 focus:ring-slate-200 focus:outline-none cursor-pointer">
                     </div>
 
                     <div>
                         <div class="flex justify-between items-center mb-1.5">
                             <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide">Pilih
-                                Personil Yang Aman</label>
+                                Nama Anggota</label>
                             <div class="flex gap-2 text-[10px] font-bold uppercase">
                                 <button type="button" onclick="centangSemua(true)"
                                     class="text-slate-800 hover:underline">Semua</button>
@@ -293,6 +293,22 @@
             const tanggalFormat = sekarang.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
             const jamFormat = `${String(sekarang.getHours()).padStart(2, '0')}:${String(sekarang.getMinutes()).padStart(2, '0')}`;
             return `${tanggalFormat} | Jam ${jamFormat}`;
+        }
+
+        // FUNGSI SECURITY MODAL PIN
+        function panggilPinModal(callbackAksi) {
+            aksiTertundaBendahara = callbackAksi;
+            const modal = document.getElementById('pin-modal');
+            const inputPin = document.getElementById('input-pin-custom');
+            const errorMsg = document.getElementById('pin-error-msg');
+
+            if (inputPin) inputPin.value = '';
+            if (errorMsg) errorMsg.classList.add('hidden');
+            if (modal) {
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+                if (inputPin) inputPin.focus();
+            }
         }
 
         // FUNGSI SECURITY MODAL PIN
@@ -565,7 +581,17 @@
                         const nominalDenda = nominalPilihanEl ? parseInt(nominalPilihanEl.value) : 5000;
 
                         const waktuAkuratSistem = dapatkanWaktuLengkap();
-                        const tanggalHariIniTeks = new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+
+                        // LOGIKA MANUAL/OTOMATIS (BACA INPUT KETERANGAN)
+                        const inputTanggalManual = document.getElementById('massal-keterangan');
+                        let tanggalHariIniTeks = new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+
+                        if (inputTanggalManual && inputTanggalManual.value.trim() !== '') {
+                            const tglUser = new Date(inputTanggalManual.value);
+                            if (!isNaN(tglUser.getTime())) {
+                                tanggalHariIniTeks = tglUser.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+                            }
+                        }
 
                         const checkboxes = document.querySelectorAll('.checkbox-video-anak:checked');
                         let daftarNamaSudahKumpul = [];
@@ -590,6 +616,7 @@
                         await fetch(API_URL, { method: 'POST', body: JSON.stringify({ aksi: 'setorMassal', data: dataSetoranVideoGlobal }) });
 
                         if (inputNamaTugas) inputNamaTugas.value = '';
+                        if (inputTanggalManual) inputTanggalManual.value = ''; // Reset date picker setelah submit
                         centangSemua(false);
 
                         await muatDataDariCloud();

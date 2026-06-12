@@ -8,7 +8,6 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
     <style>
-        /* Custom scrollbar untuk performa look premium */
         ::-webkit-scrollbar {
             width: 6px;
         }
@@ -157,8 +156,8 @@
                         class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition tracking-wide uppercase">Tambah</button>
                 </form>
 
-                <div class="max-h-40 overflow-y-auto border border-slate-200/60 rounded-xl bg-white divide-y divide-slate-100 mb-4"
-                    id="list-anggota-master"></div>
+                <div class="max-h-48 overflow-y-auto border border-slate-200/60 rounded-xl bg-white divide-y divide-slate-100 mb-4"
+                    id="list-semua-anggota"></div>
 
                 <div class="border-t border-slate-200/60 pt-4">
                     <div class="flex items-center gap-1.5 mb-3">
@@ -193,7 +192,7 @@
                             <label
                                 class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Jenis
                                 Kas / Kategori</label>
-                            <select id="massal-kategori"
+                            <select id="massal-kategori" onchange="toggleChecklistType()"
                                 class="w-full p-2.5 text-xs border border-slate-200 rounded-xl bg-white font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500">
                                 <option value="Kas Harian">Kas Harian</option>
                                 <option value="Kas Mingguan">Kas Mingguan</option>
@@ -262,8 +261,23 @@
                                         class="text-slate-400 hover:underline text-[10px]">Clear</button>
                                 </div>
                             </label>
-                            <div class="border border-slate-200/60 rounded-xl p-2.5 bg-white max-h-48 overflow-y-auto space-y-1.5"
-                                id="checklist-anak-container"></div>
+
+                            <!-- List 1: Semua Anggota (Kas Harian & Mingguan) -->
+                            <div id="wrapper-checklist-semua"
+                                class="border border-indigo-200/60 rounded-xl p-2.5 bg-indigo-50/30 max-h-48 overflow-y-auto space-y-1.5">
+                                <p class="text-[9px] font-bold text-indigo-600 mb-1 border-b border-indigo-100 pb-1">
+                                    LIST 1: KAS HARIAN/MINGGUAN (SEMUA ANGGOTA)</p>
+                                <div id="checklist-semua" class="space-y-1"></div>
+                            </div>
+
+                            <!-- List 2: Filter Anggota (Denda / Setoran) -->
+                            <div id="wrapper-checklist-filter"
+                                class="border border-rose-200/60 rounded-xl p-2.5 bg-rose-50/30 max-h-48 overflow-y-auto space-y-1.5 hidden">
+                                <p class="text-[9px] font-bold text-rose-600 mb-1 border-b border-rose-100 pb-1">LIST 2:
+                                    DENDA (TANPA PENGECUALIAN)</p>
+                                <div id="checklist-filter" class="space-y-1"></div>
+                            </div>
+
                             <p class="text-[9px] text-amber-600 font-medium mt-1.5 flex items-center gap-0.5">
                                 <span class="material-icons-round text-xs">info</span> Yang tidak bayar otomatis
                                 terhitung nunggak
@@ -283,6 +297,14 @@
                     </div>
 
                     <form id="form-pengeluaran" class="space-y-4">
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">PJ
+                                Pengeluaran (Penanggung Jawab)</label>
+                            <select id="keluar-pj"
+                                class="w-full p-2.5 text-xs border border-slate-200 rounded-xl bg-white font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500">
+                                <option value="">-- Pilih Anggota Peleton --</option>
+                            </select>
+                        </div>
                         <div>
                             <label
                                 class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Kategori
@@ -367,7 +389,6 @@
             return 'Rp ' + angka.toLocaleString('id-ID');
         }
 
-        // FUNGSI TAB SWITCHER
         function switchTab(tab) {
             const tabMasuk = document.getElementById('tab-masuk');
             const tabKeluar = document.getElementById('tab-keluar');
@@ -384,6 +405,21 @@
                 if (tabMasuk) tabMasuk.className = "flex-1 py-2 text-center text-xs font-bold text-slate-500 hover:text-slate-700 rounded-md transition uppercase tracking-wider";
                 if (panelMasuk) panelMasuk.classList.add('hidden');
                 if (panelKeluar) panelKeluar.classList.remove('hidden');
+            }
+        }
+
+        // Toggles the active checklist based on Category selected
+        function toggleChecklistType() {
+            const kategori = document.getElementById('massal-kategori').value;
+            const wrapSemua = document.getElementById('wrapper-checklist-semua');
+            const wrapFilter = document.getElementById('wrapper-checklist-filter');
+
+            if (kategori === 'Denda Ga Setoran') {
+                if (wrapSemua) wrapSemua.classList.add('hidden');
+                if (wrapFilter) wrapFilter.classList.remove('hidden');
+            } else {
+                if (wrapSemua) wrapSemua.classList.remove('hidden');
+                if (wrapFilter) wrapFilter.classList.add('hidden');
             }
         }
 
@@ -440,7 +476,6 @@
             return `${tanggalFormat} | Jam ${jamFormat}`;
         }
 
-        // 🔥 PERBAIKAN BUG: Kata 'Pediatric =' yang bikin crash sudah dihapus total di sini
         function aturTampilanTanggalSistem() {
             const sekarang = new Date();
             const el = document.getElementById('massal-keterangan');
@@ -484,7 +519,6 @@
             }
         }
 
-        // Menggunakan window load event atau pengecekan manual agar tidak error saat DOM belum siap
         document.addEventListener("DOMContentLoaded", function () {
             const inputPinCustomEl = document.getElementById('input-pin-custom');
             if (inputPinCustomEl) {
@@ -492,15 +526,15 @@
                     if (e.key === 'Enter') submitPinOtorisasi();
                 });
             }
+            toggleChecklistType(); // Init checklist display based on select
             muatDataDariCloud();
         });
 
         async function muatDataDariCloud() {
             tampilkanLoading(true);
             try {
-                console.log("Mengirim request ambilData ke:", API_URL);
                 let response = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ aksi: 'ambilData' }) });
-                if (!response.ok) throw new Error(`Server merespon dengan status HTTP: ${response.status}`);
+                if (!response.ok) throw new Error(`Server HTTP: ${response.status}`);
 
                 let data = await response.json();
                 masterAnggota = data.anggota || [];
@@ -508,42 +542,54 @@
                 renderAplikasi();
                 aturTampilanTanggalSistem();
             } catch (err) {
-                console.error("Detail Eror Koneksi Cloud:", err);
                 alert(`❌ Gagal Mengambil Data!\n\nDetail Eror: ${err.message}`);
             }
             tampilkanLoading(false);
         }
 
-        // 🔥 SISTEM RENDER UTAMA
         function renderAplikasi() {
-            const listAnggotaMaster = document.getElementById('list-anggota-master');
-            const checklistAnakContainer = document.getElementById('checklist-anak-container');
+            const listSemuaAnggota = document.getElementById('list-semua-anggota');
+            const checklistSemua = document.getElementById('checklist-semua');
+            const checklistFilter = document.getElementById('checklist-filter');
             const keluarPjSelect = document.getElementById('keluar-pj');
 
             const pjTerpilihLama = keluarPjSelect ? keluarPjSelect.value : '';
 
-            if (listAnggotaMaster) listAnggotaMaster.innerHTML = '';
-            if (checklistAnakContainer) checklistAnakContainer.innerHTML = '';
+            if (listSemuaAnggota) listSemuaAnggota.innerHTML = '';
+            if (checklistSemua) checklistSemua.innerHTML = '';
+            if (checklistFilter) checklistFilter.innerHTML = '';
             if (keluarPjSelect) keluarPjSelect.innerHTML = '<option value="">-- Pilih Anggota Peleton --</option>';
 
-            // Render Daftar Anggota Aktif
             masterAnggota.forEach((nama) => {
-                if (!nama || NAMA_DISEMBUNYIKAN.includes(nama)) return;
+                if (!nama) return;
 
-                if (listAnggotaMaster) {
-                    const item = document.createElement('div');
-                    item.className = "p-1.5 text-xs text-slate-700 font-medium";
+                const isHidden = NAMA_DISEMBUNYIKAN.includes(nama);
+
+                // 1. Render Section Daftar Anggota (Semua Nama)
+                const item = document.createElement('div');
+                item.className = "p-2.5 text-xs text-slate-700 font-medium flex justify-between items-center hover:bg-slate-50 transition";
+                if (isHidden) {
+                    item.innerHTML = `<span>${nama}</span> <span class="text-[9px] bg-slate-100 border border-slate-200 text-slate-500 px-1.5 py-0.5 rounded font-bold">Bebas Video</span>`;
+                } else {
                     item.textContent = nama;
-                    listAnggotaMaster.appendChild(item);
+                }
+                if (listSemuaAnggota) listSemuaAnggota.appendChild(item);
+
+                // 2. Render Checkbox List 1 (Semua Anggota)
+                const itemCheckSemua = document.createElement('label');
+                itemCheckSemua.className = "flex items-center gap-2 p-1.5 rounded hover:bg-white cursor-pointer text-xs font-medium text-slate-700";
+                itemCheckSemua.innerHTML = `<input type="checkbox" value="${nama}" class="checkbox-anak rounded border-gray-300 text-indigo-600 w-3.5 h-3.5 shadow-sm"><span>${nama}</span>`;
+                if (checklistSemua) checklistSemua.appendChild(itemCheckSemua);
+
+                // 3. Render Checkbox List 2 (Denda/Filter)
+                if (!isHidden) {
+                    const itemCheckFilter = document.createElement('label');
+                    itemCheckFilter.className = "flex items-center gap-2 p-1.5 rounded hover:bg-white cursor-pointer text-xs font-medium text-slate-700";
+                    itemCheckFilter.innerHTML = `<input type="checkbox" value="${nama}" class="checkbox-anak rounded border-gray-300 text-rose-600 w-3.5 h-3.5 shadow-sm"><span>${nama}</span>`;
+                    if (checklistFilter) checklistFilter.appendChild(itemCheckFilter);
                 }
 
-                if (checklistAnakContainer) {
-                    const itemCheck = document.createElement('label');
-                    itemCheck.className = "flex items-center gap-2 p-1 rounded hover:bg-slate-50 cursor-pointer text-xs font-medium text-slate-700";
-                    itemCheck.innerHTML = `<input type="checkbox" value="${nama}" class="checkbox-anak rounded border-gray-300 text-indigo-600 w-3.5 h-3.5"><span>${nama}</span>`;
-                    checklistAnakContainer.appendChild(itemCheck);
-                }
-
+                // Pengeluaran PJ (Semua Anggota)
                 if (keluarPjSelect) {
                     const opsiPj = document.createElement('option');
                     opsiPj.value = nama;
@@ -568,12 +614,15 @@
             if (logKosong) logKosong.style.display = riwayatKas.length === 0 ? 'block' : 'none';
 
             riwayatKas.forEach((log) => {
-                if (log.nama && NAMA_DISEMBUNYIKAN.includes(log.nama)) return;
-
+                const isHidden = log.nama && NAMA_DISEMBUNYIKAN.includes(log.nama);
                 const isPengeluaran = log.kategori && log.kategori.startsWith('Pengeluaran');
                 const isVideoVafor = log.kategori && log.kategori.startsWith('Video Vafor');
+                const isKasBiasa = ['Kas Harian', 'Kas Mingguan'].includes(log.kategori);
 
-                if (!['Kas Harian', 'Kas Mingguan', 'Denda Ga Setoran'].includes(log.kategori) && !isPengeluaran && !isVideoVafor) return;
+                // Jika nama tersebut disembunyikan, MEREKA TETAP MEMBAYAR KAS HARIAN, TAPI DIKECUALIKAN DARI DENDA
+                if (isHidden && !isKasBiasa && !isPengeluaran) return;
+
+                if (!isKasBiasa && log.kategori !== 'Denda Ga Setoran' && !isPengeluaran && !isVideoVafor) return;
 
                 if (log.status === 'Lunas' || log.status === 'Selesai') {
                     if (log.kategori === 'Kas Harian') totalHarian += log.nominal;
@@ -581,8 +630,6 @@
                     else if (log.kategori === 'Denda Ga Setoran' || isVideoVafor) totalDenda += log.nominal;
                     else if (isPengeluaran) totalPengeluaran += log.nominal;
                 } else if (log.status === 'Belum Bayar' || log.status === 'Belum Setor') {
-                    const isKasBiasa = ['Kas Harian', 'Kas Mingguan'].includes(log.kategori);
-
                     if (isKasBiasa) {
                         if (!tunggakanKas[log.nama]) tunggakanKas[log.nama] = {};
                         if (!tunggakanKas[log.nama][log.kategori]) tunggakanKas[log.nama][log.kategori] = { kali: 0, totalNominal: 0 };
@@ -611,7 +658,6 @@
                         badgeStatus = `<span class="bg-emerald-100 text-emerald-700 text-[9px] font-bold px-1.5 py-0.5 rounded">Lunas</span>`;
                     }
 
-                    // Sub-fitur visual: Menampilkan log nama bendahara penginput data jika ada di database
                     let infoBendahara = log.bendahara ? `<div class="text-[9px] text-slate-400 italic mt-0.5">Verified by: ${log.bendahara}</div>` : '';
 
                     cardLog.innerHTML = `
@@ -630,17 +676,16 @@
                 }
             });
 
-            // RENDERING SEPARASI LIST KAS & DENDA
             if (belumBayarContainer) {
                 belumBayarContainer.innerHTML = '';
 
-                // --- BLOK 1: KAS BIASA ---
+                // --- BLOK 1: KAS BIASA (SEMUA ANGGOTA) ---
                 const boxKas = document.createElement('div');
                 boxKas.className = "p-3 bg-white border border-slate-200 rounded-xl space-y-3 shadow-sm mb-4";
                 let htmlNunggakKas = '', htmlLunasKas = '';
 
                 masterAnggota.forEach(nama => {
-                    if (!nama || NAMA_DISEMBUNYIKAN.includes(nama)) return;
+                    if (!nama) return;
                     if (tunggakanKas[nama]) {
                         let totalUtang = 0, detail = [];
                         for (let kat in tunggakanKas[nama]) {
@@ -664,13 +709,13 @@
             `;
                 belumBayarContainer.appendChild(boxKas);
 
-                // --- BLOK 2: DENDA & VIDEO ---
+                // --- BLOK 2: DENDA (TANPA PENGECUALIAN) ---
                 const boxDenda = document.createElement('div');
                 boxDenda.className = "p-3 bg-white border border-slate-200 rounded-xl space-y-3 shadow-sm";
                 let htmlNunggakDenda = '', htmlLunasDenda = '';
 
                 masterAnggota.forEach(nama => {
-                    if (!nama || NAMA_DISEMBUNYIKAN.includes(nama)) return;
+                    if (!nama || NAMA_DISEMBUNYIKAN.includes(nama)) return; // <-- Denda hide
                     if (tunggakanDenda[nama]) {
                         let totalUtang = 0, detail = [];
                         for (let kat in tunggakanDenda[nama]) {
@@ -761,16 +806,28 @@
                         let tanggalFinalTeks = modeTanggal === 'auto' ? (ketEl ? ketEl.value : '') : konversiTanggalManualKeTeks(tglManEl ? tglManEl.value : '');
                         const waktuAkuratSistem = dapatkanWaktuLengkap();
 
-                        const checkboxes = document.querySelectorAll('.checkbox-anak:checked');
+                        // Cek checkbox mana yang aktif (berdasarkan kategori)
+                        let activeCheckboxes;
+                        if (kategori === 'Denda Ga Setoran') {
+                            activeCheckboxes = document.querySelectorAll('#checklist-filter .checkbox-anak:checked');
+                        } else {
+                            activeCheckboxes = document.querySelectorAll('#checklist-semua .checkbox-anak:checked');
+                        }
+
                         let daftarNamaLunas = [];
-                        checkboxes.forEach(cb => daftarNamaLunas.push(cb.value));
+                        activeCheckboxes.forEach(cb => daftarNamaLunas.push(cb.value));
 
                         let dataSetoranGlobal = [];
                         masterAnggota.forEach(nama => {
-                            if (!nama || NAMA_DISEMBUNYIKAN.includes(nama)) return;
+                            if (!nama) return;
+
+                            // Skip anak tersembunyi JIKA kategorinya denda
+                            if (kategori === 'Denda Ga Setoran' && NAMA_DISEMBUNYIKAN.includes(nama)) {
+                                return;
+                            }
+
                             let status = daftarNamaLunas.includes(nama) ? 'Lunas' : 'Belum Bayar';
 
-                            // 🔥 MODIFIKASI: Sekarang ikut mengirimkan log penanda bendahara aktif ke kolom G
                             dataSetoranGlobal.push({
                                 waktu: waktuAkuratSistem,
                                 nama: nama,
@@ -829,7 +886,7 @@
                             nominal: nominalKeluar,
                             keterangan: `${tanggalHariIni} | ${keperluanKeluar}`,
                             status: 'Selesai',
-                            bendahara: "Bendahara Utama" // 🔥 MODIFIKASI: Input kolom bendahara otomatis
+                            bendahara: "Bendahara Utama"
                         }];
 
                         await fetch(API_URL, { method: 'POST', body: JSON.stringify({ aksi: 'setorMassal', data: dataPengeluaran }) });
@@ -850,7 +907,9 @@
         }
 
         function centangSemua(status) {
-            document.querySelectorAll('.checkbox-anak').forEach(cb => cb.checked = status);
+            const kategori = document.getElementById('massal-kategori').value;
+            const activeId = kategori === 'Denda Ga Setoran' ? '#checklist-filter' : '#checklist-semua';
+            document.querySelectorAll(`${activeId} .checkbox-anak`).forEach(cb => cb.checked = status);
         }
     </script>
 </body>
