@@ -1,0 +1,17 @@
+{
+    "short_name": "Kas Peleton",
+    "name": "Aplikasi Kas Peleton A",
+    "icons": [
+        {
+            "src": "https://cdn-icons-png.flaticon.com/512/2489/2489756.png",
+            "type": "image/png",
+            "sizes": "512x512",
+            "purpose": "any maskable"
+        }
+    ],
+    "start_url": "./index.html",
+    "background_color": "#f8fafc",
+    "theme_color": "#4f46e5",
+    "display": "standalone",
+    "orientation": "portrait"
+}

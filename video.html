@@ -86,8 +86,6 @@
                 </div>
                 <div>
                     <h1 class="text-xl font-black text-slate-900 tracking-tight uppercase">Setoran Video Vafor</h1>
-                    <!-- <p class="text-[10px] text-slate-400 mt-0.5 tracking-widest font-bold uppercase">Peleton A
-                        Management System</p> -->
                 </div>
             </div>
             <a href="index.html"
@@ -172,15 +170,12 @@
                         <select id="video-nama-tugas"
                             class="w-full p-2.5 text-xs border border-slate-200 rounded-xl bg-white font-bold text-slate-800 focus:ring-2 focus:ring-slate-200 focus:outline-none">
                             <option value="Video Vafor 1">Video Vafor 1</option>
-                            <!-- <option value="Video Vafor 2">Video Vafor 2</option>
-                            <option value="Video Vafor 3">Video Vafor 3</option>
-                            <option value="Video Vafor 4">Video Vafor 4</option> -->
                         </select>
                     </div>
 
                     <div>
                         <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Nominal
-                            </label>
+                        </label>
                         <div class="grid grid-cols-2 gap-2 bg-slate-200/50 p-1 rounded-xl">
                             <label class="cursor-pointer text-center">
                                 <input type="radio" name="video-nominal-pilihan" value="5000" checked
@@ -261,6 +256,7 @@
             </div>
         </div>
     </div>
+
     <script>
         const API_URL = "https://script.google.com/macros/s/AKfycbyy3wD0MyH8Va2FSS_4rgBieNeNxwJo-tZuP1ZkoRfU9894zh7dRYItlxYQ3F6gIPZhKw/exec";
         const PIN_BENDAHARA = "150828";
@@ -311,22 +307,6 @@
             }
         }
 
-        // FUNGSI SECURITY MODAL PIN
-        function panggilPinModal(callbackAksi) {
-            aksiTertundaBendahara = callbackAksi;
-            const modal = document.getElementById('pin-modal');
-            const inputPin = document.getElementById('input-pin-custom');
-            const errorMsg = document.getElementById('pin-error-msg');
-
-            if (inputPin) inputPin.value = '';
-            if (errorMsg) errorMsg.classList.add('hidden');
-            if (modal) {
-                modal.classList.remove('hidden');
-                modal.classList.add('flex');
-                if (inputPin) inputPin.focus();
-            }
-        }
-
         function tutupPinModal() {
             const modal = document.getElementById('pin-modal');
             if (modal) modal.classList.add('hidden');
@@ -349,6 +329,11 @@
             }
         }
 
+        // Fungsi Wrapper agar onchange="renderAplikasi()" pada HTML tidak error
+        function renderAplikasi() {
+            renderAplikasiVideo();
+        }
+
         document.addEventListener("DOMContentLoaded", function () {
             const inputPinCustomEl = document.getElementById('input-pin-custom');
             if (inputPinCustomEl) {
@@ -359,38 +344,80 @@
             muatDataDariCloud();
         });
 
+        // KONEKSI & FALLBACK OFFLINE SINKRON DENGAN INDEX.HTML VIA LOCALSTORAGE
         async function muatDataDariCloud() {
             tampilkanLoading(true);
-            let dataMentah;
+            let dataMentah = null;
 
             try {
                 let response = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ aksi: 'ambilData' }) });
                 if (!response.ok) throw new Error(`HTTP Error Status: ${response.status}`);
                 dataMentah = await response.json();
+
+                // Simpan cache terbaru ke penyimpanan lokal agar index.html bisa membaca data yang sama
+                if (dataMentah) {
+                    localStorage.setItem('kasPeletonData', JSON.stringify(dataMentah));
+                }
             } catch (err) {
-                console.error("Gagal Fetch Cloud:", err);
-                alert(`❌ Gagal Ambil Data Dari Cloud!\n\nDetail Error: ${err.message}`);
-                tampilkanLoading(false);
-                return;
+                console.warn("⚠️ Gagal terhubung ke Cloud, menggunakan database offline lokal:", err);
+                // Fallback Offline: Membaca key database lokal yang dibagikan bersama index.html
+                const dataLokal = localStorage.getItem('kasPeletonData') || localStorage.getItem('dataPeleton');
+                if (dataLokal) {
+                    dataMentah = JSON.parse(dataLokal);
+                }
             }
 
-            try {
+            if (dataMentah) {
                 masterAnggota = dataMentah.anggota || [];
                 riwayatKas = dataMentah.riwayat || [];
+
+                // Inisialisasi daftar batch ke dalam dropdown filter atas
+                inisialisasiDropdownBatch();
                 renderAplikasiVideo();
-            } catch (err) {
-                console.error("Gagal Render UI Video:", err);
-                alert(`❌ Gagal Menampilkan Data ke Layar!\n\nDetail Bug: ${err.message}`);
+            } else {
+                alert("❌ Gagal Ambil Data! Penyimpanan awan tidak terjangkau dan cadangan offline tidak ditemukan.");
             }
 
             tampilkanLoading(false);
         }
 
-        // RENDER DAN FILTERING KATEGORI KHUSUS VIDEO
+        // GENERATE DAFTAR BATCH SECARA DINAMIS DARI DATA CLOUD/OFFLINE
+        function inisialisasiDropdownBatch() {
+            const filterSelect = document.getElementById('filter-video-tanggal');
+            if (!filterSelect) return;
+
+            const pilihanSebelumnya = filterSelect.value;
+            let setUnik = new Set();
+            let daftarBatch = [];
+
+            riwayatKas.forEach(log => {
+                if (!log || !log.kategori || !String(log.kategori).startsWith('Video Vafor')) return;
+                const key = `${log.kategori} (${log.keterangan || log.waktu})`;
+                if (!setUnik.has(key)) {
+                    setUnik.add(key);
+                    daftarBatch.push(key);
+                }
+            });
+
+            filterSelect.innerHTML = '<option value="">-- Pilih Batch --</option>';
+            daftarBatch.forEach(batchKey => {
+                const opt = document.createElement('option');
+                opt.value = batchKey;
+                opt.textContent = batchKey;
+                filterSelect.appendChild(opt);
+            });
+
+            if (pilihanSebelumnya && setUnik.has(pilihanSebelumnya)) {
+                filterSelect.value = pilihanSebelumnya;
+            } else if (daftarBatch.length > 0) {
+                filterSelect.value = daftarBatch[0]; // Otomatis pilih batch terbaru/pertama
+            }
+        }
+
+        // RENDER UTAMA APLIKASI VIDEO VAFOR
         function renderAplikasiVideo() {
             const checklistVideoContainer = document.getElementById('checklist-video-container');
 
-            // 🔥 SMART MULTI-ID SELECTOR (KANAN): Mencari kontainer log kanan agar kebal salah ID HTML
             let logVideoContainer = document.getElementById('log-video-container') ||
                 document.getElementById('riwayat-video-container') ||
                 document.getElementById('log-kas-container') ||
@@ -398,7 +425,6 @@
                 document.querySelector('div[id*="log"][id*="contain"]') ||
                 document.querySelector('div[id*="riwayat"]');
 
-            // 🔥 MULTI-ID SELECTOR (TENGAH)
             let listTunggakanVideoContainer = document.getElementById('list-tunggakan-video-container') ||
                 document.getElementById('rekap-akumulasi-container') ||
                 document.getElementById('rekap-video-container') ||
@@ -408,7 +434,6 @@
             if (checklistVideoContainer) checklistVideoContainer.innerHTML = '';
             if (logVideoContainer) logVideoContainer.innerHTML = '';
 
-            // Bersihkan isi container tengah secara aman
             if (listTunggakanVideoContainer) {
                 const existingWrapper = listTunggakanVideoContainer.querySelector('.space-y-3') || listTunggakanVideoContainer.querySelector('.space-y-2');
                 if (existingWrapper) {
@@ -510,7 +535,6 @@
                 const mainWrapper = document.createElement('div');
                 mainWrapper.className = "space-y-3 mt-2";
 
-                // Banner Hitungan Gelap
                 const bannerTotal = document.createElement('div');
                 bannerTotal.className = "p-3.5 bg-slate-900 text-white rounded-xl flex justify-between items-center shadow-md";
                 bannerTotal.innerHTML = `
@@ -522,7 +546,6 @@
                 `;
                 mainWrapper.appendChild(bannerTotal);
 
-                // List Anggota Card
                 const scrollContainer = document.createElement('div');
                 scrollContainer.className = "space-y-2 max-h-[380px] overflow-y-auto pr-1";
 
@@ -559,9 +582,55 @@
 
             const elDendaVideo = document.getElementById('stat-denda-video');
             if (elDendaVideo) elDendaVideo.textContent = formatRupiah(totalDendaVideoMasuk);
+
+            // 4. RENDER LIVE MONITORING PROGRESS GRID (ATAS)
+            const filterSelect = document.getElementById('filter-video-tanggal');
+            const selectedBatchKey = filterSelect ? filterSelect.value : '';
+
+            const listVideoSudah = document.getElementById('list-video-sudah');
+            const listVideoBelum = document.getElementById('list-video-belum');
+            const countVideoSudah = document.getElementById('count-video-sudah');
+            const countVideoBelum = document.getElementById('count-video-belum');
+            const videoVaforPeriode = document.getElementById('video-vafor-periode');
+
+            if (listVideoSudah) listVideoSudah.innerHTML = '';
+            if (listVideoBelum) listVideoBelum.innerHTML = '';
+
+            let sudahCount = 0;
+            let belumCount = 0;
+
+            if (selectedBatchKey) {
+                if (videoVaforPeriode) videoVaforPeriode.textContent = selectedBatchKey;
+
+                riwayatKas.forEach(log => {
+                    if (!log || !log.kategori || !String(log.kategori).startsWith('Video Vafor')) return;
+                    if (!log.nama || NAMA_DISEMBUNYIKAN.includes(log.nama)) return;
+
+                    const key = `${log.kategori} (${log.keterangan || log.waktu})`;
+                    if (key !== selectedBatchKey) return;
+
+                    const tagNama = document.createElement('span');
+                    if (log.status === 'Lunas' || log.status === 'Selesai') {
+                        tagNama.className = "px-2.5 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-lg text-[11px] font-bold shadow-3xs tracking-wide animate-fade-in";
+                        tagNama.textContent = log.nama;
+                        if (listVideoSudah) listVideoSudah.appendChild(tagNama);
+                        sudahCount++;
+                    } else if (log.status === 'Belum Bayar' || log.status === 'Belum Setor') {
+                        tagNama.className = "px-2.5 py-1 bg-rose-500/10 text-rose-400 border border-rose-500/20 rounded-lg text-[11px] font-bold shadow-3xs tracking-wide animate-fade-in";
+                        tagNama.textContent = log.nama;
+                        if (listVideoBelum) listVideoBelum.appendChild(tagNama);
+                        belumCount++;
+                    }
+                });
+            } else {
+                if (videoVaforPeriode) videoVaforPeriode.textContent = "Pilih batch";
+            }
+
+            if (countVideoSudah) countVideoSudah.textContent = `${sudahCount} Orang`;
+            if (countVideoBelum) countVideoBelum.textContent = `${belumCount} Orang`;
         }
 
-        // SUBMIT FORM MASSAL DATA VIDEO VAFOR
+        // SUBMIT FORM TUGAS VIDEO MASSAL
         const formVideoMassal = document.getElementById('form-video-massal');
         if (formVideoMassal) {
             formVideoMassal.addEventListener('submit', function (e) {
@@ -582,7 +651,6 @@
 
                         const waktuAkuratSistem = dapatkanWaktuLengkap();
 
-                        // LOGIKA MANUAL/OTOMATIS (BACA INPUT KETERANGAN)
                         const inputTanggalManual = document.getElementById('massal-keterangan');
                         let tanggalHariIniTeks = new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
 
@@ -613,14 +681,27 @@
                             });
                         });
 
-                        await fetch(API_URL, { method: 'POST', body: JSON.stringify({ aksi: 'setorMassal', data: dataSetoranVideoGlobal }) });
+                        // KIRIM KE CLOUD STORAGE DENGAN FALLBACK AMAN JIKA OFFLINE
+                        try {
+                            await fetch(API_URL, { method: 'POST', body: JSON.stringify({ aksi: 'setorMassal', data: dataSetoranVideoGlobal }) });
+                            alert("🔒 Otorisasi Sukses: Progress data video peleton berhasil di-update!");
+                        } catch (offlineError) {
+                            console.warn("Push cloud gagal, menyimpan lokal offline:", offlineError);
 
-                        if (inputNamaTugas) inputNamaTugas.value = '';
-                        if (inputTanggalManual) inputTanggalManual.value = ''; // Reset date picker setelah submit
+                            // Gabungkan data baru ke memory lokal saat ini agar langsung terupdate secara offline
+                            let databaseLokal = localStorage.getItem('kasPeletonData') || localStorage.getItem('dataPeleton');
+                            let parsedDB = databaseLokal ? JSON.parse(databaseLokal) : { anggota: masterAnggota, riwayat: [] };
+
+                            parsedDB.riwayat = [...dataSetoranVideoGlobal, ...(parsedDB.riwayat || [])];
+                            localStorage.setItem('kasPeletonData', JSON.stringify(parsedDB));
+
+                            alert("⚠️ Mode Offline: Gagal terhubung ke server cloud. Data berhasil disimpan di penyimpanan lokal!");
+                        }
+
+                        if (inputTanggalManual) inputTanggalManual.value = '';
                         centangSemua(false);
 
                         await muatDataDariCloud();
-                        alert("🔒 Otorisasi Sukses: Progress data video peleton berhasil di-update!");
                     } catch (error) {
                         console.error(error);
                         alert("❌ Gagal menyimpan data tugas video!");
