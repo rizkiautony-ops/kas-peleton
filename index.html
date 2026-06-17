@@ -68,6 +68,30 @@
         </div>
     </div>
 
+    <div id="qris-modal"
+        class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4 transition-all duration-300">
+        <div
+            class="bg-white rounded-2xl shadow-2xl border border-slate-100 w-full max-w-sm transform scale-95 transition-transform duration-300 p-6 flex flex-col items-center text-center">
+            <div class="bg-blue-50 p-3 rounded-xl text-blue-600 mb-3 shadow-inner flex items-center justify-center">
+                <span class="material-icons-round text-2xl">qr_code_2</span>
+            </div>
+            <h3 class="text-lg font-black text-slate-800 tracking-tight">Pembayaran via QRIS</h3>
+            <p class="text-xs text-slate-400 mt-1 max-w-xs leading-relaxed">Silakan pindai kode QR di bawah ini untuk
+                menyelesaikan pembayaran kas.</p>
+
+            <div
+                class="mt-4 p-3 bg-white border border-slate-200 rounded-xl flex items-center justify-center shadow-inner">
+                <img src="https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=QRIS_KAS_PELETON_A"
+                    alt="QRIS Code" class="w-56 h-56 object-contain rounded-lg">
+            </div>
+
+            <button type="button" onclick="tutupQrisModal()"
+                class="w-full mt-5 p-3 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl transition shadow-md shadow-indigo-200 tracking-wide uppercase">Selesai
+                / Tutup</button>
+        </div>
+    </div>
+
+
     <div class="max-w-7xl mx-auto bg-white rounded-2xl shadow-sm border border-slate-200/60 p-6 md:p-8">
 
         <div class="flex flex-col sm:flex-row justify-between items-center mb-8 border-b border-slate-100 pb-5 gap-4">
@@ -251,6 +275,23 @@
                         </div>
 
                         <div>
+                            <div class="flex justify-between items-center mb-1.5">
+                                <label
+                                    class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Metode
+                                    Pembayaran</label>
+                                <button type="button" onclick="tampilkanQrisModal()"
+                                    class="text-indigo-600 hover:text-indigo-800 font-bold text-[10px] flex items-center gap-0.5">
+                                    <span class="material-icons-round text-xs">qr_code_2</span> Lihat QR Code
+                                </button>
+                            </div>
+                            <select id="massal-metode"
+                                class="w-full p-2.5 text-xs border border-slate-200 rounded-xl bg-white font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500">
+                                <option value="Langsung">💵 Langsung / Tunai</option>
+                                <option value="QRIS">📱 Scan QRIS</option>
+                            </select>
+                        </div>
+
+                        <div>
                             <label
                                 class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 flex justify-between">
                                 <span>Centang Yang Bayar:</span>
@@ -262,7 +303,6 @@
                                 </div>
                             </label>
 
-                            <!-- List 1: Semua Anggota (Kas Harian & Mingguan) -->
                             <div id="wrapper-checklist-semua"
                                 class="border border-indigo-200/60 rounded-xl p-2.5 bg-indigo-50/30 max-h-48 overflow-y-auto space-y-1.5">
                                 <p class="text-[9px] font-bold text-indigo-600 mb-1 border-b border-indigo-100 pb-1">
@@ -270,7 +310,6 @@
                                 <div id="checklist-semua" class="space-y-1"></div>
                             </div>
 
-                            <!-- List 2: Filter Anggota (Denda / Setoran) -->
                             <div id="wrapper-checklist-filter"
                                 class="border border-rose-200/60 rounded-xl p-2.5 bg-rose-50/30 max-h-48 overflow-y-auto space-y-1.5 hidden">
                                 <p class="text-[9px] font-bold text-rose-600 mb-1 border-b border-rose-100 pb-1">LIST 2:
@@ -279,7 +318,7 @@
                             </div>
 
                             <p class="text-[9px] text-amber-600 font-medium mt-1.5 flex items-center gap-0.5">
-                                <span class="material-icons-round text-xs">info</span> Yang tidak bayar otomatis
+                                <span class="material-icons-round text-xs">info</span> Yang tidak dicentang otomatis
                                 terhitung nunggak
                             </p>
                         </div>
@@ -320,8 +359,22 @@
 
                         <div>
                             <label
+                                class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 text-red-600 flex items-center gap-0.5">
+                                <span class="material-icons-round text-xs">account_balance</span> Potong dari Sumber
+                                Kas:
+                            </label>
+                            <select id="keluar-sumber"
+                                class="w-full p-2.5 text-xs border border-rose-200 rounded-xl bg-rose-50/30 font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500">
+                                <option value="Kas Harian">Kas Harian</option>
+                                <option value="Kas Mingguan" selected>Kas Mingguan</option>
+                                <option value="Denda">Kas Denda & Video</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label
                                 class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Nominal
-                                Uang Keluar (Manual)</label>
+                                Uang Keluar</label>
                             <input type="number" id="keluar-nominal" required
                                 placeholder="Masukkan jumlah uang (Contoh: 50000)"
                                 class="w-full p-2.5 text-xs border border-slate-200 rounded-xl bg-white font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500">
@@ -372,7 +425,6 @@
     <script>
         const API_URL = "https://script.google.com/macros/s/AKfycbyy3wD0MyH8Va2FSS_4rgBieNeNxwJo-tZuP1ZkoRfU9894zh7dRYItlxYQ3F6gIPZhKw/exec";
         const PIN_BENDAHARA = "150828";
-
         const NAMA_DISEMBUNYIKAN = ["fidi", "yoga", "wili", "intan"];
 
         let masterAnggota = [];
@@ -389,6 +441,19 @@
             return 'Rp ' + angka.toLocaleString('id-ID');
         }
 
+        function tampilkanQrisModal() {
+            const modal = document.getElementById('qris-modal');
+            if (modal) {
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+            }
+        }
+
+        function tutupQrisModal() {
+            const modal = document.getElementById('qris-modal');
+            if (modal) modal.classList.add('hidden');
+        }
+
         function switchTab(tab) {
             const tabMasuk = document.getElementById('tab-masuk');
             const tabKeluar = document.getElementById('tab-keluar');
@@ -396,19 +461,18 @@
             const panelKeluar = document.getElementById('panel-keluar');
 
             if (tab === 'masuk') {
-                if (tabMasuk) tabMasuk.className = "flex-1 py-2 text-center text-xs font-bold text-indigo-600 bg-indigo-50 rounded-md transition uppercase tracking-wider";
-                if (tabKeluar) tabKeluar.className = "flex-1 py-2 text-center text-xs font-bold text-slate-500 hover:text-slate-700 rounded-md transition uppercase tracking-wider";
+                if (tabMasuk) tabMasuk.className = "flex-1 py-2 text-center text-xs font-bold text-indigo-600 bg-white rounded-lg transition-all duration-200 uppercase tracking-wider shadow-sm flex items-center justify-center gap-1.5";
+                if (tabKeluar) tabKeluar.className = "flex-1 py-2 text-center text-xs font-bold text-slate-500 hover:text-slate-700 rounded-lg transition-all duration-200 uppercase tracking-wider flex items-center justify-center gap-1.5";
                 if (panelMasuk) panelMasuk.classList.remove('hidden');
                 if (panelKeluar) panelKeluar.classList.add('hidden');
             } else {
-                if (tabKeluar) tabKeluar.className = "flex-1 py-2 text-center text-xs font-bold text-red-600 bg-red-50 rounded-md transition uppercase tracking-wider";
-                if (tabMasuk) tabMasuk.className = "flex-1 py-2 text-center text-xs font-bold text-slate-500 hover:text-slate-700 rounded-md transition uppercase tracking-wider";
+                if (tabKeluar) tabKeluar.className = "flex-1 py-2 text-center text-xs font-bold text-red-600 bg-white rounded-lg transition-all duration-200 uppercase tracking-wider shadow-sm flex items-center justify-center gap-1.5";
+                if (tabMasuk) tabMasuk.className = "flex-1 py-2 text-center text-xs font-bold text-slate-500 hover:text-slate-700 rounded-lg transition-all duration-200 uppercase tracking-wider flex items-center justify-center gap-1.5";
                 if (panelMasuk) panelMasuk.classList.add('hidden');
                 if (panelKeluar) panelKeluar.classList.remove('hidden');
             }
         }
 
-        // Toggles the active checklist based on Category selected
         function toggleChecklistType() {
             const kategori = document.getElementById('massal-kategori').value;
             const wrapSemua = document.getElementById('wrapper-checklist-semua');
@@ -428,8 +492,7 @@
             const inputManual = document.getElementById('massal-nominal-manual');
             if (!inputManual) return;
 
-            const pilihan = pilihanEl ? pilihanEl.value : '';
-            if (pilihan === 'manual') {
+            if (pilihanEl && pilihanEl.value === 'manual') {
                 inputManual.classList.remove('hidden');
                 inputManual.focus();
             } else {
@@ -446,14 +509,14 @@
             const inputManual = document.getElementById('massal-tanggal-manual');
 
             if (mode === 'auto') {
-                if (btnAuto) btnAuto.className = "px-2 py-0.5 rounded bg-white text-indigo-600 shadow-sm transition";
-                if (btnManual) btnManual.className = "px-2 py-0.5 rounded text-slate-600 transition";
+                if (btnAuto) btnAuto.className = "px-2 py-0.5 rounded-md bg-white text-indigo-600 shadow-sm transition";
+                if (btnManual) btnManual.className = "px-2 py-0.5 rounded-md text-slate-500 transition";
                 if (inputAuto) inputAuto.classList.remove('hidden');
                 if (inputManual) inputManual.classList.add('hidden');
                 aturTampilanTanggalSistem();
             } else {
-                if (btnAuto) btnAuto.className = "px-2 py-0.5 rounded text-slate-600 transition";
-                if (btnManual) btnManual.className = "px-2 py-0.5 rounded bg-white text-indigo-600 shadow-sm transition";
+                if (btnAuto) btnAuto.className = "px-2 py-0.5 rounded-md text-slate-500 transition";
+                if (btnManual) btnManual.className = "px-2 py-0.5 rounded-md bg-white text-indigo-600 shadow-sm transition";
                 if (inputAuto) inputAuto.classList.add('hidden');
                 if (inputManual) {
                     inputManual.classList.remove('hidden');
@@ -508,8 +571,7 @@
             const errorMsg = document.getElementById('pin-error-msg');
             if (!inputPinEl) return;
 
-            const inputPin = inputPinEl.value;
-            if (String(inputPin).trim() === String(PIN_BENDAHARA).trim()) {
+            if (String(inputPinEl.value).trim() === String(PIN_BENDAHARA).trim()) {
                 if (typeof aksiTertundaBendahara === 'function') aksiTertundaBendahara();
                 tutupPinModal();
             } else {
@@ -526,7 +588,7 @@
                     if (e.key === 'Enter') submitPinOtorisasi();
                 });
             }
-            toggleChecklistType(); // Init checklist display based on select
+            toggleChecklistType();
             muatDataDariCloud();
         });
 
@@ -562,10 +624,8 @@
 
             masterAnggota.forEach((nama) => {
                 if (!nama) return;
-
                 const isHidden = NAMA_DISEMBUNYIKAN.includes(nama);
 
-                // 1. Render Section Daftar Anggota (Semua Nama)
                 const item = document.createElement('div');
                 item.className = "p-2.5 text-xs text-slate-700 font-medium flex justify-between items-center hover:bg-slate-50 transition";
                 if (isHidden) {
@@ -575,13 +635,11 @@
                 }
                 if (listSemuaAnggota) listSemuaAnggota.appendChild(item);
 
-                // 2. Render Checkbox List 1 (Semua Anggota)
                 const itemCheckSemua = document.createElement('label');
                 itemCheckSemua.className = "flex items-center gap-2 p-1.5 rounded hover:bg-white cursor-pointer text-xs font-medium text-slate-700";
                 itemCheckSemua.innerHTML = `<input type="checkbox" value="${nama}" class="checkbox-anak rounded border-gray-300 text-indigo-600 w-3.5 h-3.5 shadow-sm"><span>${nama}</span>`;
                 if (checklistSemua) checklistSemua.appendChild(itemCheckSemua);
 
-                // 3. Render Checkbox List 2 (Denda/Filter)
                 if (!isHidden) {
                     const itemCheckFilter = document.createElement('label');
                     itemCheckFilter.className = "flex items-center gap-2 p-1.5 rounded hover:bg-white cursor-pointer text-xs font-medium text-slate-700";
@@ -589,7 +647,6 @@
                     if (checklistFilter) checklistFilter.appendChild(itemCheckFilter);
                 }
 
-                // Pengeluaran PJ (Semua Anggota)
                 if (keluarPjSelect) {
                     const opsiPj = document.createElement('option');
                     opsiPj.value = nama;
@@ -606,9 +663,9 @@
             if (logContainer) logContainer.innerHTML = '';
             if (belumBayarContainer) belumBayarContainer.innerHTML = '';
 
-            let totalHarian = 0, totalMingguan = 0, totalDenda = 0, totalPengeluaran = 0;
-            let tunggakanKas = {};
-            let tunggakanDenda = {};
+            let totalHarian = 0, totalMingguan = 0, totalDenda = 0;
+            let totalPengeluaran = 0, totalPemasukanSeluruhnya = 0; // Tambahan logic perhitungan absolut
+            let tunggakanKas = {}, tunggakanDenda = {};
 
             const logKosong = document.getElementById('log-kosong');
             if (logKosong) logKosong.style.display = riwayatKas.length === 0 ? 'block' : 'none';
@@ -619,16 +676,34 @@
                 const isVideoVafor = log.kategori && log.kategori.startsWith('Video Vafor');
                 const isKasBiasa = ['Kas Harian', 'Kas Mingguan'].includes(log.kategori);
 
-                // Jika nama tersebut disembunyikan, MEREKA TETAP MEMBAYAR KAS HARIAN, TAPI DIKECUALIKAN DARI DENDA
                 if (isHidden && !isKasBiasa && !isPengeluaran) return;
-
                 if (!isKasBiasa && log.kategori !== 'Denda Ga Setoran' && !isPengeluaran && !isVideoVafor) return;
 
+                // Ekstrak info tersembunyi dari kolom Keterangan (Hack untuk ngelewatin limitasi Google Script lama)
+                let ketLog = log.keterangan || "";
+                let sumberPotong = log.sumberDana || "";
+                if (!sumberPotong && ketLog.includes('[POTONG:')) {
+                    if (ketLog.includes('[POTONG: Kas Harian]')) sumberPotong = 'Kas Harian';
+                    else if (ketLog.includes('[POTONG: Kas Mingguan]')) sumberPotong = 'Kas Mingguan';
+                    else if (ketLog.includes('[POTONG: Denda]')) sumberPotong = 'Denda';
+                }
+
+                let metodeBayar = log.metode || "Langsung";
+                if (ketLog.includes('[VIA: QRIS]')) metodeBayar = 'QRIS';
+
                 if (log.status === 'Lunas' || log.status === 'Selesai') {
-                    if (log.kategori === 'Kas Harian') totalHarian += log.nominal;
-                    else if (log.kategori === 'Kas Mingguan') totalMingguan += log.nominal;
-                    else if (log.kategori === 'Denda Ga Setoran' || isVideoVafor) totalDenda += log.nominal;
-                    else if (isPengeluaran) totalPengeluaran += log.nominal;
+                    if (isPengeluaran) {
+                        totalPengeluaran += log.nominal;
+                        // Potong khusus ke kotak kas yang dipilih (kalau ada rekamannya)
+                        if (sumberPotong === 'Kas Harian') totalHarian -= log.nominal;
+                        else if (sumberPotong === 'Kas Mingguan') totalMingguan -= log.nominal;
+                        else if (sumberPotong === 'Denda') totalDenda -= log.nominal;
+                    } else {
+                        totalPemasukanSeluruhnya += log.nominal; // Akumulasi SEMUA pemasukan
+                        if (log.kategori === 'Kas Harian') totalHarian += log.nominal;
+                        else if (log.kategori === 'Kas Mingguan') totalMingguan += log.nominal;
+                        else if (log.kategori === 'Denda Ga Setoran' || isVideoVafor) totalDenda += log.nominal;
+                    }
                 } else if (log.status === 'Belum Bayar' || log.status === 'Belum Setor') {
                     if (isKasBiasa) {
                         if (!tunggakanKas[log.nama]) tunggakanKas[log.nama] = {};
@@ -646,32 +721,46 @@
                 if (logContainer) {
                     const cardLog = document.createElement('div');
                     let badgeStatus = '';
+                    let badgeMetode = '';
 
                     if (isPengeluaran) {
                         cardLog.className = "p-2.5 rounded-lg border text-xs shadow-sm bg-orange-50/60 border-orange-200";
-                        badgeStatus = `<span class="bg-orange-100 text-orange-700 text-[9px] font-bold px-1.5 py-0.5 rounded">Uang Keluar</span>`;
+                        const tagSumber = sumberPotong ? ` (${sumberPotong})` : '';
+                        badgeStatus = `<span class="bg-orange-100 text-orange-700 text-[9px] font-bold px-1.5 py-0.5 rounded">Keluar${tagSumber}</span>`;
                     } else if (log.status === 'Belum Bayar' || log.status === 'Belum Setor') {
                         cardLog.className = "p-2.5 rounded-lg border text-xs shadow-sm bg-rose-50/50 border-rose-100";
                         badgeStatus = `<span class="bg-rose-100 text-rose-700 text-[9px] font-bold px-1.5 py-0.5 rounded">${log.status}</span>`;
                     } else {
                         cardLog.className = "p-2.5 rounded-lg border text-xs shadow-sm bg-slate-50 border-slate-200";
                         badgeStatus = `<span class="bg-emerald-100 text-emerald-700 text-[9px] font-bold px-1.5 py-0.5 rounded">Lunas</span>`;
+
+                        if (metodeBayar === 'QRIS') {
+                            badgeMetode = `<span class="bg-blue-50 text-blue-700 border border-blue-200 text-[9px] font-bold px-1.5 py-0.5 rounded flex items-center gap-0.5"><span class="material-icons-round text-[10px]">qr_code_2</span> QRIS</span>`;
+                        } else {
+                            badgeMetode = `<span class="bg-slate-100 text-slate-600 border border-slate-200 text-[9px] font-bold px-1.5 py-0.5 rounded flex items-center gap-0.5"><span class="material-icons-round text-[10px]">payments</span> Langsung</span>`;
+                        }
                     }
 
                     let infoBendahara = log.bendahara ? `<div class="text-[9px] text-slate-400 italic mt-0.5">Verified by: ${log.bendahara}</div>` : '';
 
+                    // Rapikan teks keterangan dari hack [POTONG:...] untuk display UI
+                    let teksKeteranganUI = ketLog.replace(/ \[POTONG:.*?\]/g, '').replace(/ \[VIA:.*?\]/g, '');
+
                     cardLog.innerHTML = `
-                    <div class="flex justify-between text-[10px] text-slate-500 font-semibold font-mono mb-1">
-                        <span>📅 ${log.keterangan || log.waktu}</span>
-                        <span class="font-bold ${isPengeluaran ? 'text-orange-600' : 'text-indigo-600'}">${log.kategori}</span>
-                    </div>
-                    <div class="flex justify-between items-center"><div class="font-bold text-sm text-slate-800">${log.nama}</div>${badgeStatus}</div>
-                    ${infoBendahara}
-                    <div class="flex justify-between items-center mt-1 pt-1 border-t border-dashed border-slate-200">
-                        <span class="text-slate-400 text-[10px] font-mono">Input: ${log.waktu}</span>
-                        <span class="font-bold ${isPengeluaran ? 'text-red-600' : 'text-slate-700'} text-xs">${isPengeluaran ? '-' : ''}${formatRupiah(log.nominal)}</span>
-                    </div>
-                `;
+                <div class="flex justify-between text-[10px] text-slate-500 font-semibold font-mono mb-1">
+                    <span>📅 ${teksKeteranganUI || log.waktu}</span>
+                    <span class="font-bold ${isPengeluaran ? 'text-orange-600' : 'text-indigo-600'}">${log.kategori}</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <div class="font-bold text-sm text-slate-800">${log.nama}</div>
+                    <div class="flex gap-1 items-center">${badgeMetode} ${badgeStatus}</div>
+                </div>
+                ${infoBendahara}
+                <div class="flex justify-between items-center mt-1 pt-1 border-t border-dashed border-slate-200">
+                    <span class="text-slate-400 text-[10px] font-mono">Input: ${log.waktu}</span>
+                    <span class="font-bold ${isPengeluaran ? 'text-red-600' : 'text-slate-700'} text-xs">${isPengeluaran ? '-' : ''}${formatRupiah(log.nominal)}</span>
+                </div>
+            `;
                     logContainer.appendChild(cardLog);
                 }
             });
@@ -679,7 +768,6 @@
             if (belumBayarContainer) {
                 belumBayarContainer.innerHTML = '';
 
-                // --- BLOK 1: KAS BIASA (SEMUA ANGGOTA) ---
                 const boxKas = document.createElement('div');
                 boxKas.className = "p-3 bg-white border border-slate-200 rounded-xl space-y-3 shadow-sm mb-4";
                 let htmlNunggakKas = '', htmlLunasKas = '';
@@ -693,29 +781,28 @@
                             detail.push(`${kat} (${tunggakanKas[nama][kat].kali}x)`);
                         }
                         htmlNunggakKas += `
-                        <div class="flex justify-between items-center bg-rose-50/60 p-2 rounded border border-rose-100 text-xs">
-                            <div><span class="font-bold text-slate-800">👤 ${nama}</span><div class="text-[10px] text-slate-500">${detail.join(', ')}</div></div>
-                            <span class="font-black text-rose-600 bg-white px-2 py-0.5 rounded shadow-sm">${formatRupiah(totalUtang)}</span>
-                        </div>`;
+                    <div class="flex justify-between items-center bg-rose-50/60 p-2 rounded border border-rose-100 text-xs">
+                        <div><span class="font-bold text-slate-800">👤 ${nama}</span><div class="text-[10px] text-slate-500">${detail.join(', ')}</div></div>
+                        <span class="font-black text-rose-600 bg-white px-2 py-0.5 rounded shadow-sm">${formatRupiah(totalUtang)}</span>
+                    </div>`;
                     } else {
                         htmlLunasKas += `<span class="inline-block bg-emerald-50 text-emerald-700 border border-emerald-100 text-[10px] font-bold px-2 py-0.5 rounded-md">✓ ${nama}</span>`;
                     }
                 });
 
                 boxKas.innerHTML = `
-                <div class="border-b border-indigo-100 pb-1.5"><h3 class="font-black text-xs text-indigo-700 uppercase tracking-wide">📊 KAS (HARIAN & MINGGUAN)</h3></div>
-                <div><div class="text-[10px] font-bold text-rose-600 mb-1">🔴 BELUM BAYAR:</div><div class="space-y-1">${htmlNunggakKas || '<p class="text-[11px] text-emerald-600 italic">✨ Kas lunas semua!</p>'}</div></div>
-                <div class="pt-1"><div class="text-[10px] font-bold text-emerald-600 mb-1">🟢 SUDAH BAYAR (LUNAS):</div><div class="flex flex-wrap gap-1">${htmlLunasKas || '<p class="text-[11px] text-slate-400 italic">-</p>'}</div></div>
-            `;
+            <div class="border-b border-indigo-100 pb-1.5"><h3 class="font-black text-xs text-indigo-700 uppercase tracking-wide">📊 KAS (HARIAN & MINGGUAN)</h3></div>
+            <div><div class="text-[10px] font-bold text-rose-600 mb-1">🔴 BELUM BAYAR:</div><div class="space-y-1">${htmlNunggakKas || '<p class="text-[11px] text-emerald-600 italic">✨ Kas lunas semua!</p>'}</div></div>
+            <div class="pt-1"><div class="text-[10px] font-bold text-emerald-600 mb-1">🟢 SUDAH BAYAR (LUNAS):</div><div class="flex flex-wrap gap-1">${htmlLunasKas || '<p class="text-[11px] text-slate-400 italic">-</p>'}</div></div>
+        `;
                 belumBayarContainer.appendChild(boxKas);
 
-                // --- BLOK 2: DENDA (TANPA PENGECUALIAN) ---
                 const boxDenda = document.createElement('div');
                 boxDenda.className = "p-3 bg-white border border-slate-200 rounded-xl space-y-3 shadow-sm";
                 let htmlNunggakDenda = '', htmlLunasDenda = '';
 
                 masterAnggota.forEach(nama => {
-                    if (!nama || NAMA_DISEMBUNYIKAN.includes(nama)) return; // <-- Denda hide
+                    if (!nama || NAMA_DISEMBUNYIKAN.includes(nama)) return;
                     if (tunggakanDenda[nama]) {
                         let totalUtang = 0, detail = [];
                         for (let kat in tunggakanDenda[nama]) {
@@ -723,25 +810,25 @@
                             detail.push(`${kat} (${tunggakanDenda[nama][kat].kali}x)`);
                         }
                         htmlNunggakDenda += `
-                        <div class="flex justify-between items-center bg-red-50/60 p-2 rounded border border-red-100 text-xs">
-                            <div><span class="font-bold text-slate-800">👤 ${nama}</span><div class="text-[10px] text-slate-500">${detail.join(', ')}</div></div>
-                            <span class="font-black text-red-600 bg-white px-2 py-0.5 rounded shadow-sm">${formatRupiah(totalUtang)}</span>
-                        </div>`;
+                    <div class="flex justify-between items-center bg-red-50/60 p-2 rounded border border-red-100 text-xs">
+                        <div><span class="font-bold text-slate-800">👤 ${nama}</span><div class="text-[10px] text-slate-500">${detail.join(', ')}</div></div>
+                        <span class="font-black text-red-600 bg-white px-2 py-0.5 rounded shadow-sm">${formatRupiah(totalUtang)}</span>
+                    </div>`;
                     } else {
                         htmlLunasDenda += `<span class="inline-block bg-slate-50 text-slate-600 border border-slate-200 text-[10px] font-bold px-2 py-0.5 rounded-md">✓ ${nama}</span>`;
                     }
                 });
 
                 boxDenda.innerHTML = `
-                <div class="border-b border-red-100 pb-1.5"><h3 class="font-black text-xs text-red-700 uppercase tracking-wide">⚠️ DENDA & VIDEO VAFOR</h3></div>
-                <div><div class="text-[10px] font-bold text-rose-600 mb-1">🔴 BELUM SETOR:</div><div class="space-y-1">${htmlNunggakDenda || '<p class="text-[11px] text-emerald-600 italic">✨ Aman, bebas denda bray!</p>'}</div></div>
-                <div class="pt-1"><div class="text-[10px] font-bold text-slate-600 mb-1">🟢 BEBAS DENDA (LUNAS):</div><div class="flex flex-wrap gap-1">${htmlLunasDenda || '<p class="text-[11px] text-slate-400 italic">-</p>'}</div></div>
-            `;
+            <div class="border-b border-red-100 pb-1.5"><h3 class="font-black text-xs text-red-700 uppercase tracking-wide">⚠️ DENDA & VIDEO VAFOR</h3></div>
+            <div><div class="text-[10px] font-bold text-rose-600 mb-1">🔴 BELUM SETOR:</div><div class="space-y-1">${htmlNunggakDenda || '<p class="text-[11px] text-emerald-600 italic">✨ Aman, bebas denda bray!</p>'}</div></div>
+            <div class="pt-1"><div class="text-[10px] font-bold text-slate-600 mb-1">🟢 BEBAS DENDA (LUNAS):</div><div class="flex flex-wrap gap-1">${htmlLunasDenda || '<p class="text-[11px] text-slate-400 italic">-</p>'}</div></div>
+        `;
                 belumBayarContainer.appendChild(boxDenda);
             }
 
-            const totalPemasukan = totalHarian + totalMingguan + totalDenda;
-            const sisaSaldoUtama = totalPemasukan - totalPengeluaran;
+            // RUMUS FIX: Sisa Saldo Utama mutlak adalah = (Total Pemasukan Seluruhnya) - (Total Pengeluaran Seluruhnya)
+            const sisaSaldoUtama = totalPemasukanSeluruhnya - totalPengeluaran;
             let totalOrangNunggak = new Set([...Object.keys(tunggakanKas), ...Object.keys(tunggakanDenda)]).size;
 
             const elHarian = document.getElementById('stat-kas-harian'); if (elHarian) elHarian.textContent = formatRupiah(totalHarian);
@@ -806,7 +893,12 @@
                         let tanggalFinalTeks = modeTanggal === 'auto' ? (ketEl ? ketEl.value : '') : konversiTanggalManualKeTeks(tglManEl ? tglManEl.value : '');
                         const waktuAkuratSistem = dapatkanWaktuLengkap();
 
-                        // Cek checkbox mana yang aktif (berdasarkan kategori)
+                        const metodeEl = document.getElementById('massal-metode');
+                        const metodePembayaran = metodeEl ? metodeEl.value : 'Langsung';
+
+                        // Hack: Masukkan info QRIS ke dalam keterangan agar otomatis kesimpen ke Google Sheet lu
+                        let keteranganFix = tanggalFinalTeks + (metodePembayaran === 'QRIS' ? ' [VIA: QRIS]' : '');
+
                         let activeCheckboxes;
                         if (kategori === 'Denda Ga Setoran') {
                             activeCheckboxes = document.querySelectorAll('#checklist-filter .checkbox-anak:checked');
@@ -820,11 +912,7 @@
                         let dataSetoranGlobal = [];
                         masterAnggota.forEach(nama => {
                             if (!nama) return;
-
-                            // Skip anak tersembunyi JIKA kategorinya denda
-                            if (kategori === 'Denda Ga Setoran' && NAMA_DISEMBUNYIKAN.includes(nama)) {
-                                return;
-                            }
+                            if (kategori === 'Denda Ga Setoran' && NAMA_DISEMBUNYIKAN.includes(nama)) return;
 
                             let status = daftarNamaLunas.includes(nama) ? 'Lunas' : 'Belum Bayar';
 
@@ -833,7 +921,7 @@
                                 nama: nama,
                                 kategori: kategori,
                                 nominal: nominal,
-                                keterangan: tanggalFinalTeks,
+                                keterangan: keteranganFix,
                                 status: status,
                                 bendahara: "Bendahara Utama"
                             });
@@ -848,7 +936,12 @@
 
                         setModeTanggal('auto');
                         await muatDataDariCloud();
-                        alert("🔒 Otorisasi Sukses: Data kas berhasil disimpan!");
+
+                        if (metodePembayaran === 'QRIS') {
+                            tampilkanQrisModal();
+                        } else {
+                            alert("🔒 Otorisasi Sukses: Data kas berhasil disimpan!");
+                        }
                     } catch (error) { alert("❌ Gagal menyimpan data!"); }
                     finally { tampilkanLoading(false); }
                 });
@@ -863,11 +956,13 @@
                 const keluarKat = document.getElementById('keluar-kategori');
                 const keluarNom = document.getElementById('keluar-nominal');
                 const keluarKep = document.getElementById('keluar-keperluan');
+                const keluarSumberEl = document.getElementById('keluar-sumber');
 
                 const pjNama = keluarPj ? keluarPj.value : '';
                 const kategoriKeluar = keluarKat ? keluarKat.value : 'Pengeluaran';
                 const nominalKeluar = keluarNom ? parseInt(keluarNom.value) : 0;
                 const keperluanKeluar = keluarKep ? keluarKep.value.trim() : '';
+                const sumberDanaKeluar = keluarSumberEl ? keluarSumberEl.value : 'Kas Mingguan';
 
                 if (!pjNama) { alert("⚠️ Pilih PJ Penanggung Jawab dulu, bro!"); return; }
                 if (!nominalKeluar || nominalKeluar <= 0) { alert("⚠️ Masukkan nominal pengeluaran yang valid!"); return; }
@@ -879,12 +974,15 @@
                         const waktuSistem = dapatkanWaktuLengkap();
                         const tanggalHariIni = new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
 
+                        // Hack: Masukkan info sumber kas ke dalam keterangan agar bisa dibaca nanti
+                        let keteranganDenganSumber = `${tanggalHariIni} | ${keperluanKeluar} [POTONG: ${sumberDanaKeluar}]`;
+
                         let dataPengeluaran = [{
                             waktu: waktuSistem,
                             nama: pjNama,
                             kategori: kategoriKeluar,
                             nominal: nominalKeluar,
-                            keterangan: `${tanggalHariIni} | ${keperluanKeluar}`,
+                            keterangan: keteranganDenganSumber,
                             status: 'Selesai',
                             bendahara: "Bendahara Utama"
                         }];
@@ -896,7 +994,7 @@
                         switchTab('masuk');
 
                         await muatDataDariCloud();
-                        alert("🔒 Otorisasi Sukses: Data pengeluaran berhasil dicatat ke cloud database!");
+                        alert(`🔒 Otorisasi Sukses: Pengeluaran dicatat dan memotong [${sumberDanaKeluar}]!`);
                     } catch (error) {
                         alert("❌ Gagal mengirim data pengeluaran!");
                     } finally {
@@ -912,6 +1010,7 @@
             document.querySelectorAll(`${activeId} .checkbox-anak`).forEach(cb => cb.checked = status);
         }
     </script>
+    
 </body>
 
 </html>
