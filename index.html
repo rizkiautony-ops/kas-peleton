@@ -112,6 +112,15 @@
             <div
                 class="bg-white border border-slate-200/80 p-5 rounded-xl shadow-sm flex flex-col justify-between transition hover:border-slate-300">
                 <div class="flex justify-between items-start mb-2">
+                    <p class="text-[10px] uppercase tracking-wider text-emerald-600 font-bold">Total lainnya</p>
+                    <span
+                        class="material-icons-round text-emerald-500 text-lg bg-emerald-50 p-1.5 rounded-lg">date_range</span>
+                </div>
+                <p id="stat-lainnya" class="text-xl font-black text-slate-800 mt-1">Rp 0</p>
+            </div>
+            <div
+                class="bg-white border border-slate-200/80 p-5 rounded-xl shadow-sm flex flex-col justify-between transition hover:border-slate-300">
+                <div class="flex justify-between items-start mb-2">
                     <p class="text-[10px] uppercase tracking-wider text-rose-600 font-bold">Total Denda</p>
                     <span class="material-icons-round text-rose-500 text-lg bg-rose-50 p-1.5 rounded-lg">gavel</span>
                 </div>
@@ -198,7 +207,11 @@
                                 <option value="Kas Harian">Kas Harian</option>
                                 <option value="Kas Mingguan">Kas Mingguan</option>
                                 <option value="Denda Ga Setoran">Denda Tak Setoran</option>
+                                <option value="Lainnya">Lainnya</option>
                             </select>
+                            <input type="text" id="massal-kategori-lainnya"
+                                placeholder="Masukkan keterangan (Contoh: Uang Sepatu)"
+                                class="w-full p-2.5 text-xs border border-slate-200 rounded-xl bg-white font-bold text-slate-700 mt-2 hidden focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500">
                         </div>
 
                         <div>
@@ -314,6 +327,7 @@
                                 <option value="Kas Harian">Kas Harian</option>
                                 <option value="Kas Mingguan">Kas Mingguan</option>
                                 <option value="Denda">Denda</option>
+                                <option value="Lainnya">Laninnya</option>
                             </select>
                         </div>
 
@@ -424,6 +438,7 @@
             const kategori = document.getElementById('massal-kategori').value;
             const wrapSemua = document.getElementById('wrapper-checklist-semua');
             const wrapFilter = document.getElementById('wrapper-checklist-filter');
+            const inputLainnya = document.getElementById('massal-kategori-lainnya');
 
             if (kategori === 'Denda Ga Setoran') {
                 if (wrapSemua) wrapSemua.classList.add('hidden');
@@ -431,6 +446,13 @@
             } else {
                 if (wrapSemua) wrapSemua.classList.remove('hidden');
                 if (wrapFilter) wrapFilter.classList.add('hidden');
+            }
+
+            // Tampilkan field input tambahan jika pilih "Lainnya"
+            if (kategori === 'Lainnya') {
+                if (inputLainnya) inputLainnya.classList.remove('hidden');
+            } else {
+                if (inputLainnya) inputLainnya.classList.add('hidden');
             }
         }
 
@@ -644,7 +666,7 @@
             if (logContainer) logContainer.innerHTML = '';
             if (belumBayarContainer) belumBayarContainer.innerHTML = '';
 
-            let totalHarian = 0, totalMingguan = 0, totalDenda = 0, totalPengeluaran = 0;
+            let totalHarian = 0, totalMingguan = 0, totalDenda = 0, totalPengeluaran = 0, totalLainnya = 0;
             let tunggakanKas = {};
             let tunggakanDenda = {};
 
@@ -656,18 +678,19 @@
                 const isPengeluaran = log.kategori && log.kategori.startsWith('Pengeluaran');
                 const isVideoVafor = log.kategori && log.kategori.startsWith('Video Vafor');
                 const isKasBiasa = ['Kas Harian', 'Kas Mingguan'].includes(log.kategori);
+                const isLainnya = log.kategori && log.kategori.startsWith('Lainnya');
 
-                if (isHidden && !isKasBiasa && !isPengeluaran) return;
-                if (!isKasBiasa && log.kategori !== 'Denda Ga Setoran' && !isPengeluaran && !isVideoVafor) return;
+                if (isHidden && !isKasBiasa && !isPengeluaran && !isLainnya) return;
+                if (!isKasBiasa && log.kategori !== 'Denda Ga Setoran' && !isPengeluaran && !isVideoVafor && !isLainnya) return;
 
                 if (log.status === 'Lunas' || log.status === 'Selesai') {
                     if (log.kategori === 'Kas Harian') totalHarian += log.nominal;
                     else if (log.kategori === 'Kas Mingguan') totalMingguan += log.nominal;
                     else if (log.kategori === 'Denda Ga Setoran' || isVideoVafor) totalDenda += log.nominal;
+                    else if (isLainnya) totalLainnya += log.nominal;
                     else if (isPengeluaran) {
                         totalPengeluaran += log.nominal;
 
-                        // Ekstraksi sumber dana dari field object ataupun string keterangan (Offline-Friendly)
                         let sumberDana = log.sumber_dana;
                         if (!sumberDana) {
                             const ket = log.keterangan || '';
@@ -675,16 +698,17 @@
                             if (ket.includes('Kas Harian') || kat.includes('Kas Harian')) sumberDana = 'Kas Harian';
                             else if (ket.includes('Kas Mingguan') || kat.includes('Kas Mingguan')) sumberDana = 'Kas Mingguan';
                             else if (ket.includes('Denda') || kat.includes('Denda')) sumberDana = 'Denda';
+                            else if (ket.includes('Lainnya') || kat.includes('Lainnya')) sumberDana = 'Lainnya';
                         }
-                        if (!sumberDana) sumberDana = 'Kas Harian'; // Fallback default aman
+                        if (!sumberDana) sumberDana = 'Kas Harian';
 
-                        // Mengurangi kas tujuan secara akurat
                         if (sumberDana === 'Kas Harian') totalHarian -= log.nominal;
                         else if (sumberDana === 'Kas Mingguan') totalMingguan -= log.nominal;
                         else if (sumberDana === 'Denda') totalDenda -= log.nominal;
+                        else if (sumberDana === 'Lainnya') totalLainnya -= log.nominal;
                     }
                 } else if (log.status === 'Belum Bayar' || log.status === 'Belum Setor') {
-                    if (isKasBiasa) {
+                    if (isKasBiasa || isLainnya) {
                         if (!tunggakanKas[log.nama]) tunggakanKas[log.nama] = {};
                         if (!tunggakanKas[log.nama][log.kategori]) tunggakanKas[log.nama][log.kategori] = { kali: 0, totalNominal: 0 };
                         tunggakanKas[log.nama][log.kategori].kali += 1;
@@ -756,7 +780,7 @@
                 });
 
                 boxKas.innerHTML = `
-                <div class="border-b border-indigo-100 pb-1.5"><h3 class="font-black text-xs text-indigo-700 uppercase tracking-wide">📊 KAS (HARIAN & MINGGUAN)</h3></div>
+                <div class="border-b border-indigo-100 pb-1.5"><h3 class="font-black text-xs text-indigo-700 uppercase tracking-wide">📊 KAS & LAINNYA</h3></div>
                 <div><div class="text-[10px] font-bold text-rose-600 mb-1">🔴 BELUM BAYAR:</div><div class="space-y-1">${htmlNunggakKas || '<p class="text-[11px] text-emerald-600 italic">✨ Kas lunas semua!</p>'}</div></div>
                 <div class="pt-1"><div class="text-[10px] font-bold text-emerald-600 mb-1">🟢 SUDAH BAYAR (LUNAS):</div><div class="flex flex-wrap gap-1">${htmlLunasKas || '<p class="text-[11px] text-slate-400 italic">-</p>'}</div></div>
             `;
@@ -792,12 +816,12 @@
                 belumBayarContainer.appendChild(boxDenda);
             }
 
-            // Menghitung akumulasi bersih saldo utama berdasarkan pemotongan kategori kas masing-masing
-            const sisaSaldoUtama = totalHarian + totalMingguan + totalDenda;
+            const sisaSaldoUtama = totalHarian + totalMingguan + totalDenda + totalLainnya;
             let totalOrangNunggak = new Set([...Object.keys(tunggakanKas), ...Object.keys(tunggakanDenda)]).size;
 
             const elHarian = document.getElementById('stat-kas-harian'); if (elHarian) elHarian.textContent = formatRupiah(totalHarian);
             const elMingguan = document.getElementById('stat-kas-mingguan'); if (elMingguan) elMingguan.textContent = formatRupiah(totalMingguan);
+            const elLainnya = document.getElementById('stat-lainnya'); if (elLainnya) elLainnya.textContent = formatRupiah(totalLainnya);
             const elDenda = document.getElementById('stat-denda'); if (elDenda) elDenda.textContent = formatRupiah(totalDenda);
             const elKeluar = document.getElementById('stat-pengeluaran'); if (elKeluar) elKeluar.textContent = formatRupiah(totalPengeluaran);
             const elSaldo = document.getElementById('stat-saldo-utama'); if (elSaldo) elSaldo.textContent = formatRupiah(sisaSaldoUtama);
@@ -903,7 +927,18 @@
                         }
 
                         const kategoriEl = document.getElementById('massal-kategori');
-                        const kategori = kategoriEl ? kategoriEl.value : 'Kas Harian';
+                        let kategori = kategoriEl ? kategoriEl.value : 'Kas Harian';
+
+                        if (kategori === 'Lainnya') {
+                            const inputLainnya = document.getElementById('massal-kategori-lainnya');
+                            if (inputLainnya && inputLainnya.value.trim() !== '') {
+                                kategori = 'Lainnya - ' + inputLainnya.value.trim();
+                            } else {
+                                alert("⚠️ Keterangan 'Lainnya' wajib diisi (Contoh: Uang Sepatu)!");
+                                tampilkanLoading(false);
+                                return;
+                            }
+                        }
 
                         const ketEl = document.getElementById('massal-keterangan');
                         const tglManEl = document.getElementById('massal-tanggal-manual');
@@ -947,6 +982,10 @@
                             const radio2000 = document.querySelector('input[name="nominal-pilihan"][value="2000"]');
                             if (radio2000) radio2000.checked = true;
                             toggleNominalManual();
+
+                            const inputLain = document.getElementById('massal-kategori-lainnya');
+                            if (inputLain) inputLain.value = '';
+
                             setModeTanggal('auto');
                             alert("⚠️ Koneksi Offline! Data setoran kas dicatat lokal dan otomatis sinkron saat internet kembali aktif.");
                             tampilkanLoading(false);
@@ -959,6 +998,9 @@
                         const radio2000 = document.querySelector('input[name="nominal-pilihan"][value="2000"]');
                         if (radio2000) radio2000.checked = true;
                         toggleNominalManual();
+
+                        const inputLain = document.getElementById('massal-kategori-lainnya');
+                        if (inputLain) inputLain.value = '';
 
                         setModeTanggal('auto');
                         await muatDataDariCloud();
