@@ -16,6 +16,7 @@
         ::-webkit-scrollbar-track {
             background: transparent;
         }
+        
 
         ::-webkit-scrollbar-thumb {
             background: #cbd5e1;
@@ -110,9 +111,17 @@
                 <p id="stat-kas-mingguan" class="text-xl font-black text-slate-800 mt-1">Rp 0</p>
             </div>
             <div
+                class="bg-wihte border border-stale-200/80 p-5 rounded-x1 shadow-sm flex flex-col justify-between transition hover:border-slate-300">
+                <div calss=flex justify-between items-start mb-2">
+                    <p calss="text-[10px] uppercase tracking-wider text-rose-600 font-blod">Total uang sepatu</p>
+                    <span class="material-icons-round text-rose-500 text-lg bg-rose-50 p- .5 rounded-lg">gravel</span>
+                </div>
+                <p id="stat-uang-selatu" class="text-xl font-black text-slate-800 mt-1">Rp 0</p>
+            </div>   
+            <div
                 class="bg-white border border-slate-200/80 p-5 rounded-xl shadow-sm flex flex-col justify-between transition hover:border-slate-300">
                 <div class="flex justify-between items-start mb-2">
-                    <p class="text-[10px] uppercase tracking-wider text-emerald-600 font-bold">Total lainnya</p>
+                    <p class="text-[10px] uppercase tracking-wider text-emerald-600 font-bold">Total Uang Sepatu</p>
                     <span
                         class="material-icons-round text-emerald-500 text-lg bg-emerald-50 p-1.5 rounded-lg">date_range</span>
                 </div>
@@ -207,7 +216,11 @@
                                 <option value="Kas Harian">Kas Harian</option>
                                 <option value="Kas Mingguan">Kas Mingguan</option>
                                 <option value="Denda Ga Setoran">Denda Tak Setoran</option>
+<<<<<<< HEAD
                                 <option value="Lainnya">Lainnya</option>
+=======
+                                <option value="uang sepatu">uang sepatu</option>
+>>>>>>> ef6a9cef3326e510b0fb1148598bcbbd07661f31
                             </select>
                             <input type="text" id="massal-kategori-lainnya"
                                 placeholder="Masukkan keterangan (Contoh: Uang Sepatu)"
