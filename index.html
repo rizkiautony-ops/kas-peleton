@@ -730,7 +730,40 @@
             const logKosong = document.getElementById('log-kosong');
             if (logKosong) logKosong.style.display = riwayatKas.length === 0 ? 'block' : 'none';
 
-            riwayatKas.forEach((log) => {
+            // Log aktivitas selalu ditampilkan dari yang TERBARU ke yang LAMA.
+            // Data asli riwayatKas tidak diubah, hanya urutan tampilannya yang diurutkan.
+            const bulanIndonesia = {
+                januari: 0, februari: 1, maret: 2, april: 3, mei: 4, juni: 5,
+                juli: 6, agustus: 7, september: 8, oktober: 9, november: 10, desember: 11
+            };
+
+            function waktuKeTimestamp(waktu) {
+                if (!waktu) return 0;
+                if (waktu instanceof Date) return waktu.getTime();
+
+                const teks = String(waktu).trim();
+
+                // Format dari aplikasi: "6 Agustus 2026 | Jam 17:30"
+                const cocokId = teks.match(/(\d{1,2})\s+([A-Za-z]+)\s+(\d{4})(?:\s*\|\s*Jam\s*(\d{1,2}):?(\d{2})?)?/i);
+                if (cocokId) {
+                    const hari = parseInt(cocokId[1], 10);
+                    const bulan = bulanIndonesia[cocokId[2].toLowerCase()];
+                    const tahun = parseInt(cocokId[3], 10);
+                    const jam = parseInt(cocokId[4] || '0', 10);
+                    const menit = parseInt(cocokId[5] || '0', 10);
+                    if (bulan !== undefined) return new Date(tahun, bulan, hari, jam, menit).getTime();
+                }
+
+                // Fallback untuk timestamp ISO / format tanggal dari Spreadsheet.
+                const parsed = Date.parse(teks);
+                return Number.isNaN(parsed) ? 0 : parsed;
+            }
+
+            const riwayatUntukTampilan = [...riwayatKas].sort((a, b) => {
+                return waktuKeTimestamp(b.waktu) - waktuKeTimestamp(a.waktu);
+            });
+
+            riwayatUntukTampilan.forEach((log) => {
                 const isHidden = log.nama && NAMA_DISEMBUNYIKAN.includes(log.nama);
                 const isPengeluaran = log.kategori && log.kategori.startsWith('Pengeluaran');
                 const isVideoVafor = log.kategori && log.kategori.startsWith('Video Vafor');
