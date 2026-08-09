@@ -1299,7 +1299,7 @@
                 if (info) info.textContent = 'Manual: pilih 1/beberapa anak lewat checklist dan/atau ketik nama. Semua nama yang dipilih memakai nominal yang sama.';
             } else {
                 if (wrapper) wrapper.classList.add('hidden');
-                if (info) info.textContent = 'Otomatis: semua anggota yang dicentang akan dibuatkan record dengan nominal yang sama.';
+                if (info) info.textContent = 'Otomatis: semua anggota yang dicentang akan dibuatkan record dengan nominal yang sama. Jika bayarnya lebih dari nominal normal, kelebihannya otomatis membayar tunggakan. Jika bayarnya lebih dari nominal normal, kelebihannya otomatis membayar tunggakan.';
             }
         }
 
@@ -1554,6 +1554,26 @@
                 return waktuKeTimestamp(b.waktu) - waktuKeTimestamp(a.waktu);
             });
 
+            // Pembayaran yang otomatis dialokasikan ke tunggakan tidak menghapus
+            // record tunggakan lama di Spreadsheet. Karena itu frontend mengurangi
+            // nilai utang secara virtual berdasarkan metadata pelunasan_tunggakan.
+            const pembayaranTunggakan = {};
+            riwayatKas.forEach(log => {
+                if (!log || !log.nama || !log.kategori) return;
+
+                // Metadata utama disimpan di kolom keterangan yang sudah ada,
+                // sehingga Apps Script/Spreadsheet tidak perlu menambah kolom baru.
+                let nilai = Number(log.pelunasan_tunggakan) || 0;
+                if (nilai <= 0 && typeof log.keterangan === 'string') {
+                    const cocok = log.keterangan.match(/Otomatis:\s*Rp\s*([\d.]+)\s+untuk\s+tunggakan/i);
+                    if (cocok) nilai = parseInt(cocok[1].replace(/\./g, ''), 10) || 0;
+                }
+                if (nilai <= 0) return;
+
+                const key = `${log.nama}\u0000${log.kategori}`;
+                pembayaranTunggakan[key] = (pembayaranTunggakan[key] || 0) + nilai;
+            });
+
             riwayatUntukTampilan.forEach((log) => {
                 const isHidden = log.nama && NAMA_DISEMBUNYIKAN.includes(log.nama);
                 const isPengeluaran = log.kategori && log.kategori.startsWith('Pengeluaran');
@@ -1608,7 +1628,18 @@
                         if (!tunggakanKas[log.nama]) tunggakanKas[log.nama] = {};
                         if (!tunggakanKas[log.nama][log.kategori]) tunggakanKas[log.nama][log.kategori] = { kali: 0, totalNominal: 0 };
                         tunggakanKas[log.nama][log.kategori].kali += 1;
-                        tunggakanKas[log.nama][log.kategori].totalNominal += log.nominal;
+                        tunggakanKas[log.nama][log.kategori].totalNominal += Number(log.nominal) || 0;
+
+                        const keyPelunasan = `${log.nama}\u0000${log.kategori}`;
+                        const sudahDibayar = pembayaranTunggakan[keyPelunasan] || 0;
+                        if (sudahDibayar > 0) {
+                            const pengurang = Math.min(sudahDibayar, tunggakanKas[log.nama][log.kategori].totalNominal);
+                            tunggakanKas[log.nama][log.kategori].totalNominal -= pengurang;
+                            pembayaranTunggakan[keyPelunasan] = sudahDibayar - pengurang;
+                            if (tunggakanKas[log.nama][log.kategori].totalNominal <= 0) {
+                                tunggakanKas[log.nama][log.kategori].totalNominal = 0;
+                            }
+                        }
                     } else {
                         if (!tunggakanDenda[log.nama]) tunggakanDenda[log.nama] = {};
                         if (!tunggakanDenda[log.nama][log.kategori]) tunggakanDenda[log.nama][log.kategori] = { kali: 0, totalNominal: 0 };
@@ -1662,10 +1693,12 @@
                     if (tunggakanKas[nama]) {
                         let totalUtang = 0, detail = [];
                         for (let kat in tunggakanKas[nama]) {
-                            totalUtang += tunggakanKas[nama][kat].totalNominal;
+                            const utangKat = Number(tunggakanKas[nama][kat].totalNominal) || 0;
+                            if (utangKat <= 0) continue;
+                            totalUtang += utangKat;
                             detail.push(`${kat} (${tunggakanKas[nama][kat].kali}x)`);
                         }
-                        htmlNunggakKas += `
+                        if (totalUtang > 0) htmlNunggakKas += `
                         <div class="flex justify-between items-center bg-rose-50/60 p-2 rounded border border-rose-100 text-xs">
                             <div><span class="font-bold text-slate-800">👤 ${nama}</span><div class="text-[10px] text-slate-500">${detail.join(', ')}</div></div>
                             <span class="font-black text-rose-600 bg-white px-2 py-0.5 rounded shadow-sm">${formatRupiah(totalUtang)}</span>
@@ -1833,6 +1866,50 @@
             });
         }
 
+        // Menghitung tunggakan aktif seseorang untuk kategori tertentu.
+        // Hanya record Belum Bayar/Belum Setor yang dihitung sebagai utang.
+        function hitungTunggakanAktif(nama, kategori) {
+            let total = 0;
+            const detail = [];
+            (riwayatKas || []).forEach(log => {
+                if (!log || log.nama !== nama) return;
+                if (log.kategori !== kategori) return;
+                if (log.status === 'Belum Bayar' || log.status === 'Belum Setor') {
+                    const n = Number(log.nominal) || 0;
+                    if (n > 0) {
+                        total += n;
+                        detail.push(n);
+                    }
+                }
+            });
+            return { total, detail };
+        }
+
+        // Nominal normal untuk satu periode diambil dari tunggakan tertua/terkecil.
+        // Jika pembayaran lebih besar dari nominal normal, kelebihannya otomatis
+        // dialokasikan untuk melunasi tunggakan terlebih dahulu.
+        function hitungAlokasiTunggakan(nama, kategori, nominalBayar) {
+            const tunggakan = hitungTunggakanAktif(nama, kategori);
+            if (tunggakan.total <= 0 || nominalBayar <= 0) {
+                return { bayarTunggakan: 0, sisaUntukKas: nominalBayar, sisaTunggakan: tunggakan.total };
+            }
+
+            const nominalNormal = Math.min(...tunggakan.detail);
+            // Bayaran sebesar nominal normal dianggap pembayaran periode berjalan.
+            // Tunggakan baru disentuh jika pembayaran memang lebih dari nominal normal.
+            if (nominalBayar <= nominalNormal) {
+                return { bayarTunggakan: 0, sisaUntukKas: nominalBayar, sisaTunggakan: tunggakan.total };
+            }
+
+            const bayarTunggakan = Math.min(tunggakan.total, nominalBayar - nominalNormal);
+            const sisaUntukKas = nominalBayar - bayarTunggakan;
+            return {
+                bayarTunggakan,
+                sisaUntukKas,
+                sisaTunggakan: Math.max(0, tunggakan.total - bayarTunggakan)
+            };
+        }
+
         const formSetorMassal = document.getElementById('form-setor-massal');
         if (formSetorMassal) {
             formSetorMassal.addEventListener('submit', function (e) {
@@ -1908,15 +1985,22 @@
                             return;
                         }
 
-                        const dataSetoranGlobal = daftarNama.map(nama => ({
-                            waktu: waktuAkuratSistem,
-                            nama: nama,
-                            kategori: kategori,
-                            nominal: nominal,
-                            keterangan: tanggalFinalTeks,
-                            status: 'Lunas',
-                            bendahara: "Bendahara Utama"
-                        }));
+                        const dataSetoranGlobal = daftarNama.map(nama => {
+                            const alokasi = hitungAlokasiTunggakan(nama, kategori, nominal);
+                            const keteranganTambahan = alokasi.bayarTunggakan > 0
+                                ? `${tanggalFinalTeks} | Otomatis: Rp ${alokasi.bayarTunggakan.toLocaleString('id-ID')} untuk tunggakan, Rp ${alokasi.sisaUntukKas.toLocaleString('id-ID')} untuk kas berjalan`
+                                : tanggalFinalTeks;
+
+                            return {
+                                waktu: waktuAkuratSistem,
+                                nama: nama,
+                                kategori: kategori,
+                                nominal: nominal,
+                                keterangan: keteranganTambahan,
+                                status: 'Lunas',
+                                bendahara: "Bendahara Utama"
+                            };
+                        });
 
                         if (!navigator.onLine) {
                             simpanAntreanOffline('setorMassal', { data: dataSetoranGlobal });
