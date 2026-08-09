@@ -113,7 +113,7 @@
             <div
                 class="bg-white border border-slate-200/80 p-5 rounded-xl shadow-sm flex flex-col justify-between transition hover:border-slate-300">
                 <div class="flex justify-between items-start mb-2">
-                    <p class="text-[10px] uppercase tracking-wider text-emerald-600 font-bold">Total lainnya</p>
+                    <p class="text-[10px] uppercase tracking-wider text-emerald-600 font-bold">Total Uang Iuran</p>
                     <span
                         class="material-icons-round text-emerald-500 text-lg bg-emerald-50 p-1.5 rounded-lg">date_range</span>
                 </div>
@@ -151,6 +151,18 @@
                 </div>
             </div>
         </div>
+
+        <!-- Rincian otomatis setiap jenis Uang Iuran -->
+        <section id="rincian-uang-iuran-section" class="mb-8 hidden">
+            <div class="flex items-center justify-between mb-3">
+                <div>
+                    <h2 class="text-xs font-bold text-slate-700 uppercase tracking-wider">Rincian Uang Iuran</h2>
+                    <p class="text-[9px] text-slate-400 mt-0.5">Setiap nama iuran yang dimasukkan akan otomatis memiliki
+                        totalnya sendiri.</p>
+                </div>
+            </div>
+            <div id="rincian-uang-iuran-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"></div>
+        </section>
 
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
@@ -208,14 +220,40 @@
                                 <option value="Kas Harian">Kas Harian</option>
                                 <option value="Kas Mingguan">Kas Mingguan</option>
                                 <option value="Denda Ga Setoran">Denda Tak Setoran</option>
-                                <<<<<<< HEAD <option value="Lainnya">Lainnya</option>
-                                    =======
-                                    <option value="uang sepatu">uang sepatu</option>
-                                    >>>>>>> ef6a9cef3326e510b0fb1148598bcbbd07661f31
+                                <option value="Uang Iuran">Uang Iuran</option>
                             </select>
                             <input type="text" id="massal-kategori-lainnya"
-                                placeholder="Masukkan keterangan (Contoh: Uang Sepatu)"
+                                placeholder="Masukkan nama iuran (Contoh: Uang Sepatu)"
                                 class="w-full p-2.5 text-xs border border-slate-200 rounded-xl bg-white font-bold text-slate-700 mt-2 hidden focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500">
+                        </div>
+
+                        <div>
+                            <label
+                                class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Mode
+                                Input Kas</label>
+                            <div class="grid grid-cols-2 gap-2">
+                                <label
+                                    class="flex items-center gap-2 p-2.5 bg-white border border-slate-200 rounded-xl cursor-pointer hover:bg-slate-50 text-xs font-bold text-slate-700">
+                                    <input type="radio" name="mode-input-kas" value="otomatis" checked
+                                        onchange="toggleModeInputKas()" class="w-3.5 h-3.5 text-indigo-600">
+                                    <span>Otomatis</span>
+                                </label>
+                                <label
+                                    class="flex items-center gap-2 p-2.5 bg-white border border-slate-200 rounded-xl cursor-pointer hover:bg-slate-50 text-xs font-bold text-slate-700">
+                                    <input type="radio" name="mode-input-kas" value="manual"
+                                        onchange="toggleModeInputKas()" class="w-3.5 h-3.5 text-indigo-600">
+                                    <span>Manual</span>
+                                </label>
+                            </div>
+                            <p id="mode-input-kas-info" class="text-[9px] text-slate-500 mt-1.5">Otomatis: semua anggota
+                                yang dicentang akan dibuatkan record dengan nominal yang sama.</p>
+                            <div id="wrapper-nama-manual" class="hidden mt-2">
+                                <input type="text" id="massal-nama-manual"
+                                    placeholder="Ketik nama (bisa beberapa, pisahkan dengan koma)"
+                                    class="w-full p-2.5 text-xs border border-slate-200 rounded-xl bg-white font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500">
+                                <p class="text-[9px] text-slate-500 mt-1">Nama manual bisa digabung dengan nama yang
+                                    dicentang.</p>
+                            </div>
                         </div>
 
                         <div>
@@ -452,11 +490,25 @@
                 if (wrapFilter) wrapFilter.classList.add('hidden');
             }
 
-            // Tampilkan field input tambahan jika pilih "Lainnya"
-            if (kategori === 'Lainnya') {
+            // Uang Iuran memakai nama iuran sebagai bagian dari kategori.
+            if (kategori === 'Uang Iuran') {
                 if (inputLainnya) inputLainnya.classList.remove('hidden');
             } else {
                 if (inputLainnya) inputLainnya.classList.add('hidden');
+            }
+        }
+
+        function toggleModeInputKas() {
+            const modeEl = document.querySelector('input[name="mode-input-kas"]:checked');
+            const mode = modeEl ? modeEl.value : 'otomatis';
+            const wrapper = document.getElementById('wrapper-nama-manual');
+            const info = document.getElementById('mode-input-kas-info');
+            if (mode === 'manual') {
+                if (wrapper) wrapper.classList.remove('hidden');
+                if (info) info.textContent = 'Manual: pilih 1/beberapa anak lewat checklist dan/atau ketik nama. Semua nama yang dipilih memakai nominal yang sama.';
+            } else {
+                if (wrapper) wrapper.classList.add('hidden');
+                if (info) info.textContent = 'Otomatis: semua anggota yang dicentang akan dibuatkan record dengan nominal yang sama.';
             }
         }
 
@@ -671,6 +723,7 @@
             if (belumBayarContainer) belumBayarContainer.innerHTML = '';
 
             let totalHarian = 0, totalMingguan = 0, totalDenda = 0, totalPengeluaran = 0, totalLainnya = 0;
+            const rincianUangIuran = {};
             let tunggakanKas = {};
             let tunggakanDenda = {};
 
@@ -682,7 +735,8 @@
                 const isPengeluaran = log.kategori && log.kategori.startsWith('Pengeluaran');
                 const isVideoVafor = log.kategori && log.kategori.startsWith('Video Vafor');
                 const isKasBiasa = ['Kas Harian', 'Kas Mingguan'].includes(log.kategori);
-                const isLainnya = log.kategori && log.kategori.startsWith('Lainnya');
+                const isUangIuran = log.kategori && (log.kategori.startsWith('Uang Iuran') || log.kategori.startsWith('Lainnya'));
+                const isLainnya = isUangIuran;
 
                 if (isHidden && !isKasBiasa && !isPengeluaran && !isLainnya) return;
                 if (!isKasBiasa && log.kategori !== 'Denda Ga Setoran' && !isPengeluaran && !isVideoVafor && !isLainnya) return;
@@ -691,7 +745,21 @@
                     if (log.kategori === 'Kas Harian') totalHarian += log.nominal;
                     else if (log.kategori === 'Kas Mingguan') totalMingguan += log.nominal;
                     else if (log.kategori === 'Denda Ga Setoran' || isVideoVafor) totalDenda += log.nominal;
-                    else if (isLainnya) totalLainnya += log.nominal;
+                    else if (isLainnya) {
+                        totalLainnya += log.nominal;
+
+                        // Pisahkan total berdasarkan nama iuran, misalnya:
+                        // Uang Iuran - Uang Lomba -> Uang Lomba
+                        let namaIuran = '';
+                        if (typeof log.kategori === 'string') {
+                            if (log.kategori.startsWith('Uang Iuran - ')) namaIuran = log.kategori.substring('Uang Iuran - '.length).trim();
+                            else if (log.kategori.startsWith('Lainnya - ')) namaIuran = log.kategori.substring('Lainnya - '.length).trim();
+                            else if (log.kategori === 'Uang Iuran' || log.kategori === 'Lainnya') namaIuran = 'Uang Iuran Umum';
+                        }
+                        if (!namaIuran) namaIuran = 'Uang Iuran Umum';
+                        if (!rincianUangIuran[namaIuran]) rincianUangIuran[namaIuran] = 0;
+                        rincianUangIuran[namaIuran] += Number(log.nominal) || 0;
+                    }
                     else if (isPengeluaran) {
                         totalPengeluaran += log.nominal;
 
@@ -702,14 +770,14 @@
                             if (ket.includes('Kas Harian') || kat.includes('Kas Harian')) sumberDana = 'Kas Harian';
                             else if (ket.includes('Kas Mingguan') || kat.includes('Kas Mingguan')) sumberDana = 'Kas Mingguan';
                             else if (ket.includes('Denda') || kat.includes('Denda')) sumberDana = 'Denda';
-                            else if (ket.includes('Lainnya') || kat.includes('Lainnya')) sumberDana = 'Lainnya';
+                            else if (ket.includes('Uang Iuran') || kat.includes('Uang Iuran') || ket.includes('Lainnya') || kat.includes('Lainnya')) sumberDana = 'Uang Iuran';
                         }
                         if (!sumberDana) sumberDana = 'Kas Harian';
 
                         if (sumberDana === 'Kas Harian') totalHarian -= log.nominal;
                         else if (sumberDana === 'Kas Mingguan') totalMingguan -= log.nominal;
                         else if (sumberDana === 'Denda') totalDenda -= log.nominal;
-                        else if (sumberDana === 'Lainnya') totalLainnya -= log.nominal;
+                        else if (sumberDana === 'Uang Iuran' || sumberDana === 'Lainnya') totalLainnya -= log.nominal;
                     }
                 } else if (log.status === 'Belum Bayar' || log.status === 'Belum Setor') {
                     if (isKasBiasa || isLainnya) {
@@ -784,7 +852,7 @@
                 });
 
                 boxKas.innerHTML = `
-                <div class="border-b border-indigo-100 pb-1.5"><h3 class="font-black text-xs text-indigo-700 uppercase tracking-wide">📊 KAS & LAINNYA</h3></div>
+                <div class="border-b border-indigo-100 pb-1.5"><h3 class="font-black text-xs text-indigo-700 uppercase tracking-wide">📊 KAS & UANG IURAN</h3></div>
                 <div><div class="text-[10px] font-bold text-rose-600 mb-1">🔴 BELUM BAYAR:</div><div class="space-y-1">${htmlNunggakKas || '<p class="text-[11px] text-emerald-600 italic">✨ Kas lunas semua!</p>'}</div></div>
                 <div class="pt-1"><div class="text-[10px] font-bold text-emerald-600 mb-1">🟢 SUDAH BAYAR (LUNAS):</div><div class="flex flex-wrap gap-1">${htmlLunasKas || '<p class="text-[11px] text-slate-400 italic">-</p>'}</div></div>
             `;
@@ -819,6 +887,42 @@
             `;
                 belumBayarContainer.appendChild(boxDenda);
             }
+
+            // Render kartu total per jenis iuran secara otomatis.
+            const rincianSection = document.getElementById('rincian-uang-iuran-section');
+            const rincianContainer = document.getElementById('rincian-uang-iuran-container');
+            if (rincianContainer) rincianContainer.innerHTML = '';
+
+            const daftarRincianIuran = Object.entries(rincianUangIuran).sort((a, b) => a[0].localeCompare(b[0], 'id'));
+            if (rincianSection) rincianSection.classList.toggle('hidden', daftarRincianIuran.length === 0);
+
+            daftarRincianIuran.forEach(([namaIuran, total]) => {
+                if (!rincianContainer) return;
+                const card = document.createElement('div');
+                card.className = 'bg-white border border-slate-200/80 p-5 rounded-xl shadow-sm flex flex-col justify-between transition hover:border-slate-300';
+
+                const header = document.createElement('div');
+                header.className = 'flex justify-between items-start mb-2';
+
+                const title = document.createElement('p');
+                title.className = 'text-[10px] uppercase tracking-wider text-emerald-600 font-bold break-words pr-2';
+                title.textContent = 'Iuran ' + namaIuran;
+
+                const icon = document.createElement('span');
+                icon.className = 'material-icons-round text-emerald-500 text-lg bg-emerald-50 p-1.5 rounded-lg';
+                icon.textContent = 'savings';
+
+                header.appendChild(title);
+                header.appendChild(icon);
+
+                const amount = document.createElement('p');
+                amount.className = 'text-xl font-black text-slate-800 mt-1';
+                amount.textContent = formatRupiah(total);
+
+                card.appendChild(header);
+                card.appendChild(amount);
+                rincianContainer.appendChild(card);
+            });
 
             const sisaSaldoUtama = totalHarian + totalMingguan + totalDenda + totalLainnya;
             let totalOrangNunggak = new Set([...Object.keys(tunggakanKas), ...Object.keys(tunggakanDenda)]).size;
@@ -914,6 +1018,9 @@
                 panggilPinModal(async function () {
                     tampilkanLoading(true);
                     try {
+                        const modeEl = document.querySelector('input[name="mode-input-kas"]:checked');
+                        const modeInput = modeEl ? modeEl.value : 'otomatis';
+
                         const nominalPilihanEl = document.querySelector('input[name="nominal-pilihan"]:checked');
                         const nominalPilihan = nominalPilihanEl ? nominalPilihanEl.value : '2000';
                         let nominal;
@@ -933,52 +1040,59 @@
                         const kategoriEl = document.getElementById('massal-kategori');
                         let kategori = kategoriEl ? kategoriEl.value : 'Kas Harian';
 
-                        if (kategori === 'Lainnya') {
-                            const inputLainnya = document.getElementById('massal-kategori-lainnya');
-                            if (inputLainnya && inputLainnya.value.trim() !== '') {
-                                kategori = 'Lainnya - ' + inputLainnya.value.trim();
-                            } else {
-                                alert("⚠️ Keterangan 'Lainnya' wajib diisi (Contoh: Uang Sepatu)!");
+                        if (kategori === 'Uang Iuran') {
+                            const inputIuran = document.getElementById('massal-kategori-lainnya');
+                            const namaIuran = inputIuran ? inputIuran.value.trim() : '';
+                            if (!namaIuran) {
+                                alert("⚠️ Nama iuran wajib diisi (Contoh: Uang Sepatu)!");
                                 tampilkanLoading(false);
                                 return;
                             }
+                            kategori = 'Uang Iuran - ' + namaIuran;
                         }
 
                         const ketEl = document.getElementById('massal-keterangan');
                         const tglManEl = document.getElementById('massal-tanggal-manual');
-                        let tanggalFinalTeks = modeTanggal === 'auto' ? (ketEl ? ketEl.value : '') : konversiTanggalManualKeTeks(tglManEl ? tglManEl.value : '');
+                        const tanggalFinalTeks = modeTanggal === 'auto'
+                            ? (ketEl ? ketEl.value : '')
+                            : konversiTanggalManualKeTeks(tglManEl ? tglManEl.value : '');
                         const waktuAkuratSistem = dapatkanWaktuLengkap();
 
-                        let activeCheckboxes;
-                        if (kategori === 'Denda Ga Setoran') {
-                            activeCheckboxes = document.querySelectorAll('#checklist-filter .checkbox-anak:checked');
-                        } else {
-                            activeCheckboxes = document.querySelectorAll('#checklist-semua .checkbox-anak:checked');
+                        const checklistSelector = kategori.startsWith('Denda Ga Setoran')
+                            ? '#checklist-filter .checkbox-anak:checked'
+                            : '#checklist-semua .checkbox-anak:checked';
+                        const daftarNama = [];
+
+                        document.querySelectorAll(checklistSelector).forEach(cb => {
+                            if (cb.value && !daftarNama.includes(cb.value)) daftarNama.push(cb.value);
+                        });
+
+                        // Mode manual: nama dari checklist + nama yang diketik manual.
+                        if (modeInput === 'manual') {
+                            const inputNama = document.getElementById('massal-nama-manual');
+                            const namaManual = inputNama ? inputNama.value : '';
+                            namaManual.split(',').map(n => n.trim()).filter(Boolean).forEach(nama => {
+                                if (!daftarNama.includes(nama)) daftarNama.push(nama);
+                            });
                         }
 
-                        let daftarNamaLunas = [];
-                        activeCheckboxes.forEach(cb => daftarNamaLunas.push(cb.value));
+                        if (daftarNama.length === 0) {
+                            alert(modeInput === 'manual'
+                                ? "⚠️ Pilih nama di checklist atau ketik minimal satu nama!"
+                                : "⚠️ Centang minimal satu anggota!");
+                            tampilkanLoading(false);
+                            return;
+                        }
 
-                        let dataSetoranGlobal = [];
-                        masterAnggota.forEach(nama => {
-                            if (!nama) return;
-
-                            if (kategori === 'Denda Ga Setoran' && NAMA_DISEMBUNYIKAN.includes(nama)) {
-                                return;
-                            }
-
-                            let status = daftarNamaLunas.includes(nama) ? 'Lunas' : 'Belum Bayar';
-
-                            dataSetoranGlobal.push({
-                                waktu: waktuAkuratSistem,
-                                nama: nama,
-                                kategori: kategori,
-                                nominal: nominal,
-                                keterangan: tanggalFinalTeks,
-                                status: status,
-                                bendahara: "Bendahara Utama"
-                            });
-                        });
+                        const dataSetoranGlobal = daftarNama.map(nama => ({
+                            waktu: waktuAkuratSistem,
+                            nama: nama,
+                            kategori: kategori,
+                            nominal: nominal,
+                            keterangan: tanggalFinalTeks,
+                            status: 'Lunas',
+                            bendahara: "Bendahara Utama"
+                        }));
 
                         if (!navigator.onLine) {
                             simpanAntreanOffline('setorMassal', { data: dataSetoranGlobal });
@@ -986,31 +1100,37 @@
                             const radio2000 = document.querySelector('input[name="nominal-pilihan"][value="2000"]');
                             if (radio2000) radio2000.checked = true;
                             toggleNominalManual();
-
-                            const inputLain = document.getElementById('massal-kategori-lainnya');
-                            if (inputLain) inputLain.value = '';
-
+                            const inputIuran = document.getElementById('massal-kategori-lainnya');
+                            if (inputIuran) inputIuran.value = '';
+                            const inputNama = document.getElementById('massal-nama-manual');
+                            if (inputNama) inputNama.value = '';
                             setModeTanggal('auto');
                             alert("⚠️ Koneksi Offline! Data setoran kas dicatat lokal dan otomatis sinkron saat internet kembali aktif.");
                             tampilkanLoading(false);
                             return;
                         }
 
-                        await fetch(API_URL, { method: 'POST', body: JSON.stringify({ aksi: 'setorMassal', data: dataSetoranGlobal }) });
-                        centangSemua(false);
+                        const response = await fetch(API_URL, {
+                            method: 'POST',
+                            body: JSON.stringify({ aksi: 'setorMassal', data: dataSetoranGlobal })
+                        });
+                        if (!response.ok) throw new Error('Gagal menyimpan data');
 
+                        centangSemua(false);
                         const radio2000 = document.querySelector('input[name="nominal-pilihan"][value="2000"]');
                         if (radio2000) radio2000.checked = true;
                         toggleNominalManual();
-
-                        const inputLain = document.getElementById('massal-kategori-lainnya');
-                        if (inputLain) inputLain.value = '';
-
+                        const inputIuran = document.getElementById('massal-kategori-lainnya');
+                        if (inputIuran) inputIuran.value = '';
+                        const inputNama = document.getElementById('massal-nama-manual');
+                        if (inputNama) inputNama.value = '';
                         setModeTanggal('auto');
                         await muatDataDariCloud();
-                        alert("🔒 Otorisasi Sukses: Data kas berhasil disimpan!");
-                    } catch (error) { alert("❌ Gagal menyimpan data!"); }
-                    finally { tampilkanLoading(false); }
+                        alert(`🔒 Otorisasi Sukses: ${dataSetoranGlobal.length} data kas berhasil disimpan!`);
+                    } catch (error) {
+                        console.error(error);
+                        alert("❌ Gagal menyimpan data!");
+                    } finally { tampilkanLoading(false); }
                 });
             });
         }
@@ -1078,6 +1198,10 @@
                 });
             });
         }
+
+        // Inisialisasi tampilan input kas.
+        toggleModeInputKas();
+        toggleChecklistType();
 
         function centangSemua(status) {
             const kategori = document.getElementById('massal-kategori').value;
