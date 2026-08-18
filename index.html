@@ -413,10 +413,22 @@
             color: #67249e !important;
         }
 
-        /* Iuran panel */
-        #rincian-uang-iuran-section {
-            display: block !important;
+        /* Rincian Uang Iuran panels */
+        .rincian-uang-iuran-layout {
+            display: grid !important;
+            grid-template-columns: minmax(260px, 0.8fr) minmax(360px, 1.2fr);
+            gap: 18px !important;
             margin: 18px 0 22px !important;
+            align-items: start;
+        }
+
+        .rincian-uang-iuran-layout.hidden {
+            display: none !important;
+        }
+
+        #rincian-uang-iuran-section,
+        #rincian-list-uang-iuran-section {
+            margin: 0 !important;
             padding: 16px 14px 18px !important;
             border: 3px solid #111 !important;
             background: #fffdf7 !important;
@@ -424,11 +436,8 @@
             position: relative;
         }
 
-        #rincian-uang-iuran-section.hidden:empty {
-            display: none !important;
-        }
-
-        #rincian-uang-iuran-section h2 {
+        #rincian-uang-iuran-section h2,
+        #rincian-list-uang-iuran-section h2 {
             display: inline-block !important;
             background: #ffd21a !important;
             border: 3px solid #111 !important;
@@ -441,14 +450,15 @@
             box-shadow: 4px 4px 0 #111 !important;
         }
 
-        #rincian-uang-iuran-section p {
+        #rincian-uang-iuran-section p,
+        #rincian-list-uang-iuran-section p {
             font-family: 'Kalam', cursive !important;
             color: #555 !important;
             font-size: 11px !important;
         }
 
         #rincian-uang-iuran-container {
-            grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+            grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
             gap: 12px !important;
         }
 
@@ -472,6 +482,77 @@
             font-family: 'Bangers', Impact, sans-serif !important;
             font-size: 28px !important;
             color: #2463c9 !important;
+        }
+
+        #rincian-list-uang-iuran-container {
+            max-height: 470px;
+            overflow-y: auto;
+            padding-right: 3px;
+        }
+
+        #rincian-list-uang-iuran-container .iuran-list-card {
+            background: #fff !important;
+            border: 3px solid #111 !important;
+            border-radius: 10px !important;
+            box-shadow: 4px 4px 0 #111 !important;
+            padding: 12px !important;
+        }
+
+        #rincian-list-uang-iuran-container .iuran-list-title {
+            font-family: 'Bangers', Impact, sans-serif !important;
+            font-size: 18px !important;
+            color: #111 !important;
+            letter-spacing: 1px !important;
+            background: #dceaff !important;
+            border: 2px solid #111 !important;
+            padding: 4px 10px !important;
+            display: inline-block;
+            box-shadow: 2px 2px 0 #111 !important;
+            margin-bottom: 8px;
+            transform: skew(-5deg);
+        }
+
+        #rincian-list-uang-iuran-container .iuran-list-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+            padding: 4px 0;
+            border-bottom: 1px dashed #d6d3d1;
+            font-family: 'Kalam', cursive !important;
+            font-size: 12px !important;
+            color: #111 !important;
+        }
+
+        #rincian-list-uang-iuran-container .iuran-list-row:last-child {
+            border-bottom: 0;
+        }
+
+        #rincian-list-uang-iuran-container .iuran-list-name {
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        #rincian-list-uang-iuran-container .iuran-list-value {
+            min-width: 90px;
+            text-align: right;
+            font-family: 'Nunito', sans-serif !important;
+            font-weight: 900 !important;
+            white-space: nowrap;
+        }
+
+        #rincian-list-uang-iuran-container .iuran-list-total {
+            margin-top: 7px;
+            padding-top: 7px;
+            border-top: 2px solid #111;
+            display: flex;
+            justify-content: space-between;
+            font-family: 'Bangers', Impact, sans-serif !important;
+            font-size: 16px !important;
+            letter-spacing: .5px;
+            color: #16833c !important;
         }
 
         /* Lower comic panels. Keep all existing functionality, move member management below the main workspace. */
@@ -688,6 +769,10 @@
             .comic-header {
                 margin-left: -16px !important;
                 margin-right: -16px !important;
+            }
+
+            .rincian-uang-iuran-layout {
+                grid-template-columns: 1fr !important;
             }
 
             #rincian-uang-iuran-container {
@@ -943,17 +1028,30 @@
             </div>
         </div>
 
-        <!-- Rincian otomatis setiap jenis Uang Iuran -->
-        <section id="rincian-uang-iuran-section" class="mb-8 hidden">
-            <div class="flex items-center justify-between mb-3">
-                <div>
-                    <h2 class="text-xs font-bold text-slate-700 uppercase tracking-wider">Rincian Uang Iuran</h2>
-                    <p class="text-[9px] text-slate-400 mt-0.5">Setiap nama iuran yang dimasukkan akan otomatis memiliki
-                        totalnya sendiri.</p>
+        <!-- Rincian Uang Iuran: total dan daftar pembayaran dipisahkan -->
+        <div id="rincian-uang-iuran-layout" class="rincian-uang-iuran-layout hidden">
+            <section id="rincian-uang-iuran-section" class="hidden">
+                <div class="flex items-center justify-between mb-3">
+                    <div>
+                        <h2 class="text-xs font-bold text-slate-700 uppercase tracking-wider">Rincian Uang Iuran</h2>
+                        <p class="text-[9px] text-slate-400 mt-0.5">Total setiap jenis iuran yang terkumpul.</p>
+                    </div>
                 </div>
-            </div>
-            <div id="rincian-uang-iuran-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"></div>
-        </section>
+                <div id="rincian-uang-iuran-container" class="grid grid-cols-1 sm:grid-cols-2 gap-4"></div>
+            </section>
+
+            <section id="rincian-list-uang-iuran-section" class="hidden">
+                <div class="flex items-center justify-between mb-3">
+                    <div>
+                        <h2 class="text-xs font-bold text-slate-700 uppercase tracking-wider">Rincian List Uang Iuran
+                        </h2>
+                        <p class="text-[9px] text-slate-400 mt-0.5">Daftar pembayaran setiap anggota untuk masing-masing
+                            iuran.</p>
+                    </div>
+                </div>
+                <div id="rincian-list-uang-iuran-container" class="space-y-3"></div>
+            </section>
+        </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
@@ -1515,6 +1613,7 @@
 
             let totalHarian = 0, totalMingguan = 0, totalDenda = 0, totalPengeluaran = 0, totalLainnya = 0;
             const rincianUangIuran = {};
+            const rincianIuranPerNama = {};
             let tunggakanKas = {};
             let tunggakanDenda = {};
 
@@ -1601,8 +1700,35 @@
                             else if (log.kategori === 'Uang Iuran' || log.kategori === 'Lainnya') namaIuran = 'Uang Iuran Umum';
                         }
                         if (!namaIuran) namaIuran = 'Uang Iuran Umum';
-                        if (!rincianUangIuran[namaIuran]) rincianUangIuran[namaIuran] = 0;
-                        rincianUangIuran[namaIuran] += Number(log.nominal) || 0;
+
+                        // Abaikan hanya Uang Lomba Rp55.000 dari kartu rincian,
+                        // sesuai aturan sebelumnya. Data log tetap ada.
+                        const keyNamaIuran = String(namaIuran)
+                            .replace(/[\u200B-\u200D\uFEFF]/g, '')
+                            .replace(/\u00A0/g, ' ')
+                            .trim()
+                            .toLowerCase()
+                            .replace(/[^a-z0-9]+/g, '');
+
+                        if (keyNamaIuran === 'uanglomba' && Number(log.nominal) === 55000) {
+                            // Jangan masukkan ke rincian per iuran.
+                        } else {
+                            const nominalIuran = Number(log.nominal) || 0;
+
+                            if (!rincianUangIuran[namaIuran]) rincianUangIuran[namaIuran] = 0;
+                            rincianUangIuran[namaIuran] += nominalIuran;
+
+                            // Simpan akumulasi pembayaran per orang untuk iuran tersebut.
+                            if (!rincianIuranPerNama[namaIuran]) {
+                                rincianIuranPerNama[namaIuran] = {};
+                            }
+
+                            if (!rincianIuranPerNama[namaIuran][log.nama]) {
+                                rincianIuranPerNama[namaIuran][log.nama] = 0;
+                            }
+
+                            rincianIuranPerNama[namaIuran][log.nama] += nominalIuran;
+                        }
                     }
                     else if (isPengeluaran) {
                         totalPengeluaran += log.nominal;
@@ -1745,16 +1871,32 @@
                 belumBayarContainer.appendChild(boxDenda);
             }
 
-            // Render kartu total per jenis iuran secara otomatis.
+            // Render rincian total dan daftar pembayaran per anggota dalam dua panel terpisah.
             const rincianSection = document.getElementById('rincian-uang-iuran-section');
             const rincianContainer = document.getElementById('rincian-uang-iuran-container');
+            const rincianListSection = document.getElementById('rincian-list-uang-iuran-section');
+            const rincianListContainer = document.getElementById('rincian-list-uang-iuran-container');
+            const rincianLayout = document.getElementById('rincian-uang-iuran-layout');
+
             if (rincianContainer) rincianContainer.innerHTML = '';
+            if (rincianListContainer) rincianListContainer.innerHTML = '';
 
             const daftarRincianIuran = Object.entries(rincianUangIuran).sort((a, b) => a[0].localeCompare(b[0], 'id'));
-            if (rincianSection) rincianSection.classList.toggle('hidden', daftarRincianIuran.length === 0);
+
+            // Rincian otomatis hilang saat seluruh saldo Uang Iuran sudah habis dipakai.
+            // totalLainnya adalah saldo bersih Uang Iuran setelah dikurangi pengeluaran
+            // yang sumber dananya berasal dari Uang Iuran/Lainnya.
+            const saldoUangIuran = Number(totalLainnya) || 0;
+            const adaRincianIuran = daftarRincianIuran.length > 0 && saldoUangIuran > 0;
+
+            if (rincianLayout) rincianLayout.classList.toggle('hidden', !adaRincianIuran);
+            if (rincianSection) rincianSection.classList.toggle('hidden', !adaRincianIuran);
+            if (rincianListSection) rincianListSection.classList.toggle('hidden', !adaRincianIuran);
 
             daftarRincianIuran.forEach(([namaIuran, total]) => {
                 if (!rincianContainer) return;
+
+                // PANEL KIRI: hanya total setiap jenis iuran.
                 const card = document.createElement('div');
                 card.className = 'bg-white border border-slate-200/80 p-5 rounded-xl shadow-sm flex flex-col justify-between transition hover:border-slate-300';
 
@@ -1779,6 +1921,61 @@
                 card.appendChild(header);
                 card.appendChild(amount);
                 rincianContainer.appendChild(card);
+
+                // PANEL KANAN: daftar semua anggota, termasuk yang belum membayar.
+                if (!rincianListContainer) return;
+
+                const listCard = document.createElement('div');
+                listCard.className = 'iuran-list-card';
+
+                const listTitle = document.createElement('div');
+                listTitle.className = 'iuran-list-title';
+                listTitle.textContent = '• ' + namaIuran;
+                listCard.appendChild(listTitle);
+
+                const daftarNamaIuran = rincianIuranPerNama[namaIuran] || {};
+                const daftarNama = masterAnggota.filter(Boolean).slice();
+
+                // Nama manual yang tercatat tapi belum ada di daftar anggota tetap ditampilkan.
+                Object.keys(daftarNamaIuran).forEach(nama => {
+                    if (nama && !daftarNama.includes(nama)) daftarNama.push(nama);
+                });
+
+                const listWrap = document.createElement('div');
+
+                daftarNama.forEach((nama, index) => {
+                    const nominalNama = Number(daftarNamaIuran[nama] || 0);
+                    const row = document.createElement('div');
+                    row.className = 'iuran-list-row';
+
+                    const kiri = document.createElement('span');
+                    kiri.className = 'iuran-list-name';
+                    kiri.textContent = `${index + 1}. ${nama}=`;
+
+                    const kanan = document.createElement('span');
+                    kanan.className = 'iuran-list-value';
+                    kanan.textContent = nominalNama > 0 ? formatRupiah(nominalNama) : '';
+
+                    row.appendChild(kiri);
+                    row.appendChild(kanan);
+                    listWrap.appendChild(row);
+                });
+
+                const totalRow = document.createElement('div');
+                totalRow.className = 'iuran-list-total';
+
+                const totalLabel = document.createElement('span');
+                totalLabel.textContent = '• Total';
+
+                const totalValue = document.createElement('span');
+                totalValue.textContent = formatRupiah(total);
+
+                totalRow.appendChild(totalLabel);
+                totalRow.appendChild(totalValue);
+
+                listCard.appendChild(listWrap);
+                listCard.appendChild(totalRow);
+                rincianListContainer.appendChild(listCard);
             });
 
             const sisaSaldoUtama = totalHarian + totalMingguan + totalDenda + totalLainnya;
