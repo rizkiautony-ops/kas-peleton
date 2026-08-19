@@ -1596,10 +1596,11 @@
 
                 const item = document.createElement('div');
                 item.className = "p-2.5 text-xs text-slate-700 font-medium flex justify-between items-center hover:bg-slate-50 transition";
+                const namaEscaped = String(nama).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
                 if (isHidden) {
-                    item.innerHTML = `<span>${nama}</span> <span class="text-[9px] bg-slate-100 border border-slate-200 text-slate-500 px-1.5 py-0.5 rounded font-bold">Bebas Video</span>`;
+                    item.innerHTML = `<span>${nama}</span><div class="flex items-center gap-1.5"><span class="text-[9px] bg-slate-100 border border-slate-200 text-slate-500 px-1.5 py-0.5 rounded font-bold">Bebas Video</span><button type="button" onclick="hapusAnggota('${namaEscaped}')" class="text-[9px] bg-rose-50 border border-rose-200 text-rose-600 px-1.5 py-0.5 rounded font-black hover:bg-rose-100">Hapus</button></div>`;
                 } else {
-                    item.textContent = nama;
+                    item.innerHTML = `<span>${nama}</span><button type="button" onclick="hapusAnggota('${namaEscaped}')" class="text-[9px] bg-rose-50 border border-rose-200 text-rose-600 px-1.5 py-0.5 rounded font-black hover:bg-rose-100">Hapus</button>`;
                 }
                 if (listSemuaAnggota) listSemuaAnggota.appendChild(item);
 
@@ -2054,6 +2055,44 @@
         }
 
         window.addEventListener('online', sinkronisasiAntreanOffline);
+
+        async function hapusAnggota(nama) {
+            if (!nama) return;
+            const konfirmasi = confirm(`Hapus anggota "${nama}" dari daftar anggota?\n\nRiwayat kas anggota tidak akan dihapus.`);
+            if (!konfirmasi) return;
+
+            panggilPinModal(async function () {
+                tampilkanLoading(true);
+                try {
+                    if (!navigator.onLine) {
+                        alert("⚠️ Penghapusan anggota membutuhkan koneksi internet agar data cloud tetap sinkron.");
+                        return;
+                    }
+
+                    const response = await fetch(API_URL, {
+                        method: 'POST',
+                        body: JSON.stringify({ aksi: 'hapusAnggota', nama: nama })
+                    });
+
+                    if (!response.ok) throw new Error(`Server HTTP: ${response.status}`);
+                    const hasil = await response.json();
+                    if (hasil.error) throw new Error(hasil.error);
+
+                    masterAnggota = masterAnggota.filter(item => item !== nama);
+                    localStorage.setItem('kas_peleton_cache', JSON.stringify({
+                        anggota: masterAnggota,
+                        riwayat: riwayatKas
+                    }));
+                    renderAplikasi();
+                    alert(`✅ Anggota "${nama}" berhasil dihapus dari daftar.`);
+                } catch (error) {
+                    console.error('Gagal menghapus anggota:', error);
+                    alert(`❌ Gagal menghapus anggota!\n\n${error.message || 'Terjadi kesalahan.'}`);
+                } finally {
+                    tampilkanLoading(false);
+                }
+            });
+        }
 
         const formAnggota = document.getElementById('form-anggota');
         if (formAnggota) {
