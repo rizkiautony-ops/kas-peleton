@@ -1404,6 +1404,903 @@
             }
         }
     </style>
+
+    <style>
+        /* Sisa Saldo Utama memenuhi seluruh lebar baris pada semua ukuran layar. */
+        body>.max-w-7xl>.grid.grid-cols-1.sm\:grid-cols-2.lg\:grid-cols-5>.saldo-comic-card {
+            grid-column: 1 / -1 !important;
+            width: 100% !important;
+        }
+
+        /* Desktop/tablet: gunakan ruang kosong horizontal sepenuhnya. */
+        @media (min-width: 721px) {
+            body>.max-w-7xl>.grid.grid-cols-1.sm\:grid-cols-2.lg\:grid-cols-5>.saldo-comic-card {
+                min-width: 0 !important;
+            }
+        }
+
+        /* HP/portrait: tetap satu baris penuh, tidak menyisakan kolom kosong. */
+        @media (max-width: 720px) {
+            body>.max-w-7xl>.grid.grid-cols-1.sm\:grid-cols-2.lg\:grid-cols-5>.saldo-comic-card {
+                grid-column: 1 / -1 !important;
+                width: 100% !important;
+            }
+        }
+    </style>
+
+    <style id="kas-pro-upgrade-styles">
+        /* ===== Kas Pro Upgrade: tools, analytics, export, audit, viewer role ===== */
+        .kas-pro-toolbar {
+            margin: 18px 0 20px;
+            padding: 14px;
+            background: #fffdf7;
+            border: 3px solid #111;
+            box-shadow: 5px 5px 0 #111;
+            position: relative;
+            overflow: hidden
+        }
+
+        .kas-pro-toolbar::after {
+            content: "";
+            position: absolute;
+            right: -25px;
+            top: -30px;
+            width: 120px;
+            height: 120px;
+            background: radial-gradient(#111 1px, transparent 1px);
+            background-size: 6px 6px;
+            opacity: .08;
+            pointer-events: none
+        }
+
+        .kas-pro-toolbar-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr auto auto auto;
+            gap: 10px;
+            align-items: center
+        }
+
+        .kas-pro-input,
+        .kas-pro-select {
+            width: 100%;
+            border: 2px solid #111;
+            border-radius: 8px;
+            background: #fff;
+            padding: 10px 11px;
+            font-weight: 800;
+            font-size: 12px;
+            outline: none;
+            box-shadow: 2px 2px 0 rgba(0, 0, 0, .18)
+        }
+
+        .kas-pro-input:focus,
+        .kas-pro-select:focus {
+            box-shadow: 3px 3px 0 #111;
+            border-color: #2463c9
+        }
+
+        .kas-pro-btn {
+            border: 3px solid #111;
+            border-radius: 8px;
+            box-shadow: 3px 3px 0 #111;
+            padding: 9px 11px;
+            font-family: 'Bangers', Impact, sans-serif;
+            letter-spacing: 1px;
+            background: #fff;
+            color: #111;
+            cursor: pointer;
+            transition: transform .15s, box-shadow .15s, background .15s;
+            color .15s
+        }
+
+        .kas-pro-btn:hover {
+            transform: translate(2px, 2px);
+            box-shadow: 1px 1px 0 #111
+        }
+
+        .kas-pro-btn.primary {
+            background: #2463c9;
+            color: #fff
+        }
+
+        .kas-pro-btn.green {
+            background: #57b84b;
+            color: #111
+        }
+
+        .kas-pro-btn.yellow {
+            background: #ffd21a
+        }
+
+        .kas-pro-btn.red {
+            background: #ef1b25;
+            color: #fff
+        }
+
+        .kas-pro-role {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            border: 2px solid #111;
+            background: #fff;
+            padding: 8px 10px;
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: 900
+        }
+
+        .kas-pro-role .status {
+            font-family: 'Bangers', Impact, sans-serif;
+            letter-spacing: 1px
+        }
+
+        .kas-pro-grid {
+            display: grid;
+            grid-template-columns: 1.2fr .8fr;
+            gap: 16px;
+            margin: 0 0 20px
+        }
+
+        .kas-pro-panel {
+            background: #fff;
+            border: 3px solid #111;
+            box-shadow: 5px 5px 0 #111;
+            padding: 14px;
+            position: relative;
+            overflow: hidden
+        }
+
+        .kas-pro-panel h3 {
+            font-family: 'Bangers', Impact, sans-serif;
+            letter-spacing: 1px;
+            font-size: 22px;
+            margin: 0 0 10px
+        }
+
+        .kas-pro-panel small {
+            font-family: 'Kalam', cursive;
+            color: #555
+        }
+
+        .kas-pro-bars {
+            display: grid;
+            gap: 10px
+        }
+
+        .kas-pro-bar-row {
+            display: grid;
+            grid-template-columns: 100px 1fr 95px;
+            gap: 8px;
+            align-items: center;
+            font-size: 10px;
+            font-weight: 900
+        }
+
+        .kas-pro-bar-track {
+            height: 18px;
+            border: 2px solid #111;
+            background: #fff;
+            border-radius: 5px;
+            overflow: hidden
+        }
+
+        .kas-pro-bar-fill {
+            height: 100%;
+            transform-origin: left center;
+            animation: kasBarIn .65s ease both
+        }
+
+        .kas-pro-bar-fill.in {
+            background: #57b84b
+        }
+
+        .kas-pro-bar-fill.out {
+            background: #ef1b25
+        }
+
+        @keyframes kasBarIn {
+            from {
+                transform: scaleX(0)
+            }
+
+            to {
+                transform: scaleX(1)
+            }
+        }
+
+        .kas-pro-expense-list,
+        .kas-pro-audit-list {
+            max-height: 330px;
+            overflow: auto;
+            display: grid;
+            gap: 8px;
+            padding-right: 2px
+        }
+
+        .kas-pro-expense-card,
+        .kas-pro-audit-card {
+            border: 2px solid #111;
+            background: #fffdf7;
+            box-shadow: 3px 3px 0 #111;
+            padding: 10px;
+            border-radius: 7px;
+            font-size: 10px
+        }
+
+        .kas-pro-expense-card .top,
+        .kas-pro-audit-card .top {
+            display: flex;
+            justify-content: space-between;
+            gap: 8px;
+            font-weight: 900
+        }
+
+        .kas-pro-expense-card .money {
+            font-family: 'Bangers', Impact, sans-serif;
+            font-size: 22px;
+            color: #d72b2b
+        }
+
+        .kas-pro-tag {
+            display: inline-block;
+            padding: 3px 6px;
+            border: 1px solid #111;
+            border-radius: 4px;
+            background: #ffd21a;
+            font-weight: 900
+        }
+
+        .kas-pro-warning {
+            margin: 0 0 18px;
+            padding: 10px 12px;
+            border: 3px solid #111;
+            background: #fff1b8;
+            box-shadow: 4px 4px 0 #111;
+            display: none;
+            font-weight: 900;
+            font-size: 11px;
+            animation: kasWarn .35s ease both
+        }
+
+        @keyframes kasWarn {
+            from {
+                transform: translateY(-8px);
+                opacity: 0
+            }
+
+            to {
+                transform: none;
+                opacity: 1
+            }
+        }
+
+        .kas-pro-confirm {
+            position: fixed;
+            inset: 0;
+            background: rgba(17, 17, 17, .62);
+            backdrop-filter: blur(4px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 60;
+            padding: 16px
+        }
+
+        .kas-pro-confirm.show {
+            display: flex
+        }
+
+        .kas-pro-confirm-card {
+            width: min(460px, 100%);
+            background: #fffdf7;
+            border: 3px solid #111;
+            box-shadow: 8px 8px 0 #111;
+            padding: 18px;
+            animation: kasConfirmIn .25s cubic-bezier(.2, .8, .2, 1)
+        }
+
+        @keyframes kasConfirmIn {
+            from {
+                transform: translateY(18px) scale(.96);
+                opacity: 0
+            }
+
+            to {
+                transform: none;
+                opacity: 1
+            }
+        }
+
+        .kas-pro-confirm h3 {
+            font-family: 'Bangers', Impact, sans-serif;
+            font-size: 28px;
+            margin: 0 0 10px
+        }
+
+        .kas-pro-confirm-grid {
+            display: grid;
+            gap: 7px;
+            margin: 12px 0 16px
+        }
+
+        .kas-pro-confirm-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            border-bottom: 1px dashed #aaa;
+            padding-bottom: 6px;
+            font-size: 11px;
+            font-weight: 800
+        }
+
+        .kas-pro-confirm-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px
+        }
+
+        .kas-pro-role-viewer #form-anggota,
+        .kas-pro-role-viewer #panel-masuk,
+        .kas-pro-role-viewer #panel-keluar,
+        .kas-pro-role-viewer button[onclick*="hapusAnggota"] {
+            display: none !important
+        }
+
+        .kas-pro-role-viewer .kas-pro-write-label::after {
+            content: " • MODE VIEWER";
+            color: #d72b2b
+        }
+
+        .kas-pro-empty {
+            padding: 18px;
+            text-align: center;
+            font-size: 11px;
+            font-family: 'Kalam', cursive;
+            color: #777;
+            border: 2px dashed #aaa
+        }
+
+        @media(max-width:1100px) {
+            .kas-pro-toolbar-grid {
+                grid-template-columns: 1fr 1fr 1fr
+            }
+
+            .kas-pro-grid {
+                grid-template-columns: 1fr
+            }
+        }
+
+        @media(max-width:720px) {
+            .kas-pro-toolbar-grid {
+                grid-template-columns: 1fr 1fr
+            }
+
+            .kas-pro-toolbar-grid .wide {
+                grid-column: 1/-1
+            }
+
+            .kas-pro-btn {
+                width: 100%
+            }
+
+            .kas-pro-grid {
+                grid-template-columns: 1fr
+            }
+
+            .kas-pro-bar-row {
+                grid-template-columns: 82px 1fr 78px
+            }
+        }
+    </style>
+
+
+    <style id="layout-polish-v2">
+        /* ===== LAYOUT POLISH V2: only layout/spacing/responsive composition ===== */
+        :root {
+            --layout-gap: 18px;
+            --panel-radius: 12px;
+            --comic-shadow: 5px 5px 0 #111;
+        }
+
+        /* Main shell rhythm */
+        body>.max-w-7xl {
+            max-width: 1440px !important;
+            padding-left: 24px !important;
+            padding-right: 24px !important;
+            padding-bottom: 38px !important;
+        }
+
+        /* Dashboard: 5 metrics + full-width balance card */
+        body>.max-w-7xl>.grid.grid-cols-1.sm\:grid-cols-2.lg\:grid-cols-5 {
+            display: grid !important;
+            grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+            gap: 14px !important;
+            align-items: stretch !important;
+            margin-bottom: 22px !important;
+        }
+
+        body>.max-w-7xl>.grid.grid-cols-1.sm\:grid-cols-2.lg\:grid-cols-5>div {
+            min-width: 0 !important;
+            width: 100% !important;
+        }
+
+        body>.max-w-7xl>.grid.grid-cols-1.sm\:grid-cols-2.lg\:grid-cols-5>.saldo-comic-card {
+            grid-column: 1/-1 !important;
+            min-height: 132px !important;
+        }
+
+        /* Control/report toolbar: clear hierarchy */
+        .kas-pro-toolbar {
+            margin: 0 0 20px !important;
+            padding: 16px !important;
+            border-radius: 12px !important;
+        }
+
+        .kas-pro-toolbar>div:first-child {
+            align-items: flex-start !important;
+        }
+
+        .kas-pro-toolbar-grid {
+            grid-template-columns: minmax(260px, 2.15fr) minmax(150px, .9fr) minmax(150px, .9fr) auto auto auto !important;
+            gap: 10px !important;
+        }
+
+        .kas-pro-role {
+            white-space: nowrap;
+        }
+
+        /* Analytics */
+        .kas-pro-grid {
+            grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
+            gap: 18px !important;
+            margin-bottom: 20px !important;
+        }
+
+        .kas-pro-panel {
+            border-radius: 12px !important;
+        }
+
+        /* Iuran pair: left summary, right member list */
+        .rincian-uang-iuran-layout {
+            grid-template-columns: minmax(300px, .82fr) minmax(420px, 1.18fr) !important;
+            gap: 18px !important;
+            margin: 0 0 22px !important;
+        }
+
+        #rincian-uang-iuran-section,
+        #rincian-list-uang-iuran-section {
+            min-width: 0 !important;
+            border-radius: 12px !important;
+        }
+
+        #rincian-uang-iuran-container {
+            grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        }
+
+        #rincian-list-uang-iuran-container {
+            max-height: 540px !important;
+        }
+
+        /* Main workspace: members / input / activity */
+        body>.max-w-7xl>.grid.grid-cols-1.lg\:grid-cols-12 {
+            display: grid !important;
+            grid-template-columns: repeat(12, minmax(0, 1fr)) !important;
+            gap: 18px !important;
+            align-items: start !important;
+            margin-top: 0 !important;
+        }
+
+        body>.max-w-7xl>.grid.grid-cols-1.lg\:grid-cols-12>.lg\:col-span-4:nth-child(1) {
+            grid-column: span 3/span 3 !important;
+            order: 1 !important;
+        }
+
+        body>.max-w-7xl>.grid.grid-cols-1.lg\:grid-cols-12>.lg\:col-span-4:nth-child(2) {
+            grid-column: span 5/span 5 !important;
+            order: 2 !important;
+        }
+
+        body>.max-w-7xl>.grid.grid-cols-1.lg\:grid-cols-12>.lg\:col-span-4:nth-child(3) {
+            grid-column: span 4/span 4 !important;
+            order: 3 !important;
+            min-width: 0 !important;
+        }
+
+        body>.max-w-7xl>.grid.grid-cols-1.lg\:grid-cols-12>div {
+            min-width: 0 !important;
+            border-radius: 12px !important;
+        }
+
+        /* Members panel: keep both lists visually balanced */
+        #list-semua-anggota {
+            max-height: 235px !important;
+        }
+
+        #list-belum-bayar-container {
+            max-height: 460px !important;
+        }
+
+        /* Input tabs: comfortable rather than oversized */
+        #tab-masuk,
+        #tab-keluar {
+            min-height: 48px !important;
+        }
+
+        #panel-masuk,
+        #panel-keluar {
+            min-width: 0 !important;
+        }
+
+        #form-setor-massal,
+        #form-pengeluaran {
+            min-width: 0 !important;
+        }
+
+        /* Activity area */
+        body>.max-w-7xl>.grid.grid-cols-1.lg\:grid-cols-12>div:nth-child(3) {
+            max-height: 820px !important;
+        }
+
+        #log-container {
+            max-height: 690px !important;
+        }
+
+        /* Confirm modal stays visually compact */
+        .kas-pro-confirm-card {
+            max-height: 88vh;
+            overflow: auto;
+        }
+
+        /* ===================== TABLET ===================== */
+        @media (min-width:721px) and (max-width:1100px) {
+            body>.max-w-7xl {
+                padding-left: 16px !important;
+                padding-right: 16px !important;
+            }
+
+            body>.max-w-7xl>.grid.grid-cols-1.sm\:grid-cols-2.lg\:grid-cols-5 {
+                grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+            }
+
+            body>.max-w-7xl>.grid.grid-cols-1.sm\:grid-cols-2.lg\:grid-cols-5>.saldo-comic-card {
+                grid-column: 1/-1 !important;
+            }
+
+            .kas-pro-toolbar-grid {
+                grid-template-columns: 2fr 1fr 1fr !important;
+            }
+
+            .kas-pro-toolbar-grid .kas-pro-btn {
+                width: 100% !important;
+            }
+
+            .kas-pro-grid {
+                grid-template-columns: 1fr 1fr !important;
+            }
+
+            .rincian-uang-iuran-layout {
+                grid-template-columns: 1fr !important;
+            }
+
+            body>.max-w-7xl>.grid.grid-cols-1.lg\:grid-cols-12 {
+                grid-template-columns: repeat(12, minmax(0, 1fr)) !important;
+            }
+
+            body>.max-w-7xl>.grid.grid-cols-1.lg\:grid-cols-12>.lg\:col-span-4:nth-child(1) {
+                grid-column: 1/-1 !important;
+                order: 3 !important;
+            }
+
+            body>.max-w-7xl>.grid.grid-cols-1.lg\:grid-cols-12>.lg\:col-span-4:nth-child(2) {
+                grid-column: span 7/span 7 !important;
+                order: 1 !important;
+            }
+
+            body>.max-w-7xl>.grid.grid-cols-1.lg\:grid-cols-12>.lg\:col-span-4:nth-child(3) {
+                grid-column: span 5/span 5 !important;
+                order: 2 !important;
+            }
+        }
+
+        /* ======================= HP ======================= */
+        @media (max-width:720px) {
+            body {
+                padding: 6px !important;
+            }
+
+            body>.max-w-7xl {
+                width: 100% !important;
+                margin-top: 6px !important;
+                padding-left: 10px !important;
+                padding-right: 10px !important;
+                padding-bottom: 18px !important;
+            }
+
+            /* Header uses less vertical space on phones */
+            .comic-header {
+                min-height: 168px !important;
+                padding: 12px 12px 18px !important;
+                margin-left: -10px !important;
+                margin-right: -10px !important;
+                margin-bottom: 18px !important;
+            }
+
+            .comic-title {
+                font-size: 36px !important;
+            }
+
+            .comic-logo-wrap {
+                width: 62px !important;
+                height: 62px !important;
+                flex-basis: 62px !important;
+            }
+
+            .comic-school {
+                font-size: 12px !important;
+                padding: 4px 9px !important;
+                margin-top: 6px !important;
+            }
+
+            .comic-video-btn {
+                font-size: 11px !important;
+                padding: 7px 9px !important;
+            }
+
+            /* Metrics: compact 2-column grid + full-width balance */
+            body>.max-w-7xl>.grid.grid-cols-1.sm\:grid-cols-2.lg\:grid-cols-5 {
+                grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+                gap: 10px !important;
+                margin-bottom: 16px !important;
+            }
+
+            body>.max-w-7xl>.grid.grid-cols-1.sm\:grid-cols-2.lg\:grid-cols-5>div {
+                min-height: 108px !important;
+                padding: 11px !important;
+            }
+
+            body>.max-w-7xl>.grid.grid-cols-1.sm\:grid-cols-2.lg\:grid-cols-5>.saldo-comic-card {
+                grid-column: 1/-1 !important;
+                min-height: 120px !important;
+            }
+
+            body>.max-w-7xl>.grid.grid-cols-1.sm\:grid-cols-2.lg\:grid-cols-5 p[id^="stat-"] {
+                font-size: 25px !important;
+                line-height: 1 !important;
+            }
+
+            /* Report tools: stack for thumb-friendly controls */
+            .kas-pro-toolbar {
+                padding: 12px !important;
+                margin-bottom: 16px !important;
+            }
+
+            .kas-pro-toolbar>div:first-child {
+                flex-direction: column !important;
+                align-items: stretch !important;
+                gap: 10px !important;
+            }
+
+            .kas-pro-role {
+                width: 100% !important;
+                justify-content: space-between !important;
+            }
+
+            .kas-pro-toolbar-grid {
+                grid-template-columns: 1fr 1fr !important;
+                gap: 8px !important;
+            }
+
+            .kas-pro-toolbar-grid .wide {
+                grid-column: 1/-1 !important;
+            }
+
+            .kas-pro-toolbar-grid .kas-pro-btn {
+                width: 100% !important;
+                min-height: 42px !important;
+            }
+
+            .kas-pro-toolbar-grid .kas-pro-btn:nth-last-child(1) {
+                grid-column: 1/-1 !important;
+            }
+
+            /* Analytics becomes a clean vertical stack */
+            .kas-pro-grid {
+                grid-template-columns: 1fr !important;
+                gap: 14px !important;
+                margin-bottom: 16px !important;
+            }
+
+            .kas-pro-panel {
+                padding: 12px !important;
+            }
+
+            .kas-pro-panel h3 {
+                font-size: 20px !important;
+            }
+
+            .kas-pro-bar-row {
+                grid-template-columns: 72px 1fr 72px !important;
+                gap: 6px !important;
+            }
+
+            /* Iuran cards one column to prevent cramped text */
+            .rincian-uang-iuran-layout {
+                grid-template-columns: 1fr !important;
+                gap: 12px !important;
+                margin-bottom: 16px !important;
+            }
+
+            #rincian-uang-iuran-section,
+            #rincian-list-uang-iuran-section {
+                padding: 12px !important;
+            }
+
+            #rincian-uang-iuran-container {
+                grid-template-columns: 1fr !important;
+                gap: 9px !important;
+            }
+
+            #rincian-list-uang-iuran-container {
+                max-height: 420px !important;
+            }
+
+            /* Main workspace: order input -> activity -> members for mobile */
+            body>.max-w-7xl>.grid.grid-cols-1.lg\:grid-cols-12 {
+                display: grid !important;
+                grid-template-columns: 1fr !important;
+                gap: 14px !important;
+            }
+
+            body>.max-w-7xl>.grid.grid-cols-1.lg\:grid-cols-12>.lg\:col-span-4:nth-child(1),
+            body>.max-w-7xl>.grid.grid-cols-1.lg\:grid-cols-12>.lg\:col-span-4:nth-child(2),
+            body>.max-w-7xl>.grid.grid-cols-1.lg\:grid-cols-12>.lg\:col-span-4:nth-child(3) {
+                grid-column: 1/-1 !important;
+                width: 100% !important;
+            }
+
+            body>.max-w-7xl>.grid.grid-cols-1.lg\:grid-cols-12>.lg\:col-span-4:nth-child(2) {
+                order: 1 !important;
+            }
+
+            body>.max-w-7xl>.grid.grid-cols-1.lg\:grid-cols-12>.lg\:col-span-4:nth-child(3) {
+                order: 2 !important;
+            }
+
+            body>.max-w-7xl>.grid.grid-cols-1.lg\:grid-cols-12>.lg\:col-span-4:nth-child(1) {
+                order: 3 !important;
+            }
+
+            /* Input tabs remain side-by-side but with less vertical bulk */
+            #tab-masuk,
+            #tab-keluar {
+                min-height: 44px !important;
+                font-size: 16px !important;
+            }
+
+            #panel-masuk,
+            #panel-keluar {
+                padding-bottom: 2px !important;
+            }
+
+            #panel-masuk select,
+            #panel-masuk input,
+            #panel-masuk textarea,
+            #panel-keluar select,
+            #panel-keluar input,
+            #panel-keluar textarea {
+                font-size: 12px !important;
+                min-height: 42px !important;
+            }
+
+            #wrapper-checklist-semua,
+            #wrapper-checklist-filter {
+                max-height: 190px !important;
+            }
+
+            /* Member/tunggakan sections fit the phone */
+            #list-semua-anggota {
+                max-height: 210px !important;
+            }
+
+            #list-belum-bayar-container {
+                max-height: 360px !important;
+            }
+
+            #log-container {
+                max-height: 500px !important;
+            }
+
+            body>.max-w-7xl>.grid.grid-cols-1.lg\:grid-cols-12>div:nth-child(3) {
+                max-height: none !important;
+            }
+
+            /* Confirmation card fills phone safely */
+            .kas-pro-confirm {
+                padding: 10px !important;
+            }
+
+            .kas-pro-confirm-card {
+                width: 100% !important;
+                padding: 14px !important;
+                max-height: 90vh !important;
+            }
+
+            .kas-pro-confirm-actions {
+                grid-template-columns: 1fr 1fr !important;
+                gap: 8px !important;
+            }
+
+            /* Prevent horizontal overflow from long labels/controls */
+            .kas-pro-toolbar-grid,
+            .kas-pro-grid,
+            .rincian-uang-iuran-layout,
+            body>.max-w-7xl>.grid.grid-cols-1.lg\:grid-cols-12 {
+                min-width: 0 !important;
+            }
+
+            .kas-pro-input,
+            .kas-pro-select,
+            .kas-pro-btn {
+                min-width: 0 !important;
+            }
+        }
+    </style>
+
+
+    <style id="desktop-control-layout-fix">
+        /* ===== Desktop layout fix: Control & Report stays full-width above Analytics ===== */
+        @media (min-width:1101px) {
+            #rincian-uang-iuran-layout {
+                display: grid !important;
+                grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
+                gap: 18px !important;
+                align-items: start !important;
+            }
+
+            #rincian-uang-iuran-layout>#kas-pro-toolbar,
+            #rincian-uang-iuran-layout>#kas-pro-warning,
+            #rincian-uang-iuran-layout>.kas-pro-grid,
+            #rincian-uang-iuran-layout>.kas-pro-panel,
+            #rincian-uang-iuran-layout>#kas-pro-expense-confirm {
+                grid-column: 1 / -1 !important;
+            }
+
+            #rincian-uang-iuran-layout>#kas-pro-toolbar {
+                width: 100% !important;
+                margin: 0 0 18px !important;
+            }
+
+            #rincian-uang-iuran-layout>#kas-pro-warning {
+                margin: 0 0 18px !important;
+            }
+
+            #rincian-uang-iuran-layout>.kas-pro-grid {
+                width: 100% !important;
+                display: grid !important;
+                grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
+                gap: 18px !important;
+                margin: 0 0 20px !important;
+            }
+
+            #rincian-uang-iuran-layout>.kas-pro-grid>.kas-pro-panel {
+                min-width: 0 !important;
+                width: 100% !important;
+            }
+
+            #rincian-uang-iuran-layout>.kas-pro-panel {
+                width: 100% !important;
+            }
+
+            /* Keep the two Iuran sections side-by-side like the other report cards. */
+            #rincian-uang-iuran-layout>#rincian-uang-iuran-section,
+            #rincian-uang-iuran-layout>#rincian-list-uang-iuran-section {
+                grid-column: auto !important;
+                width: 100% !important;
+                min-width: 0 !important;
+            }
+        }
+    </style>
+
 </head>
 
 <body class="bg-slate-50 font-sans min-h-screen py-8 px-4 relative antialiased">
@@ -1535,6 +2432,96 @@
 
         <!-- Rincian Uang Iuran: total dan daftar pembayaran dipisahkan -->
         <div id="rincian-uang-iuran-layout" class="rincian-uang-iuran-layout hidden">
+
+            <section id="kas-pro-toolbar" class="kas-pro-toolbar kas-pro-write-label">
+                <div class="flex items-center justify-between gap-3 mb-3">
+                    <div>
+                        <h2 class="text-sm font-black uppercase tracking-wider"
+                            style="font-family:'Bangers',Impact,sans-serif;font-size:24px">KONTROL & LAPORAN KAS</h2>
+                        <p class="text-[10px] text-slate-500">Cari transaksi, filter, export, backup, dan kontrol mode
+                            tampilan.</p>
+                    </div>
+                    <div class="kas-pro-role">
+                        <span class="material-icons-round text-sm">badge</span>
+                        <span>MODE</span>
+                        <select id="kas-role-select" class="kas-pro-select !w-auto !py-1 !px-2" style="min-width:120px">
+                            <option value="bendahara">Bendahara</option>
+                            <option value="viewer">Viewer</option>
+                        </select>
+                        <span id="kas-role-status" class="status text-indigo-600">AKTIF</span>
+                    </div>
+                </div>
+                <div class="kas-pro-toolbar-grid">
+                    <input id="kas-search" class="kas-pro-input wide" type="search"
+                        placeholder="Cari nama, kategori, keterangan, nominal...">
+                    <select id="kas-filter" class="kas-pro-select">
+                        <option value="semua">Semua transaksi</option>
+                        <option value="masuk">Kas masuk</option>
+                        <option value="iuran">Uang iuran</option>
+                        <option value="keluar">Pengeluaran</option>
+                        <option value="denda">Denda</option>
+                        <option value="harian">Kas harian</option>
+                        <option value="mingguan">Kas mingguan</option>
+                    </select>
+                    <select id="kas-sort" class="kas-pro-select">
+                        <option value="newest">Terbaru</option>
+                        <option value="oldest">Terlama</option>
+                        <option value="largest">Nominal terbesar</option>
+                    </select>
+                    <button type="button" id="kas-export-btn" class="kas-pro-btn primary"><span
+                            class="material-icons-round text-sm align-middle">download</span> EXPORT</button>
+                    <button type="button" id="kas-backup-btn" class="kas-pro-btn yellow"><span
+                            class="material-icons-round text-sm align-middle">backup</span> BACKUP</button>
+                    <button type="button" id="kas-refresh-report-btn" class="kas-pro-btn green"><span
+                            class="material-icons-round text-sm align-middle">insights</span> ANALISIS</button>
+                </div>
+            </section>
+
+            <section id="kas-pro-warning" class="kas-pro-warning"></section>
+
+            <section class="kas-pro-grid">
+                <div class="kas-pro-panel">
+                    <div class="flex justify-between items-center gap-3 mb-2">
+                        <h3>STATISTIK KAS</h3>
+                        <span class="kas-pro-tag">REAL-TIME</span>
+                    </div>
+                    <small>Pemasukan dan pengeluaran berdasarkan riwayat yang sudah tersimpan.</small>
+                    <div id="kas-pro-bars" class="kas-pro-bars mt-4"></div>
+                </div>
+
+                <div class="kas-pro-panel">
+                    <div class="flex justify-between items-center gap-3 mb-2">
+                        <h3>RIWAYAT PENGELUARAN</h3>
+                        <span id="kas-pro-expense-total" class="kas-pro-tag">Rp 0</span>
+                    </div>
+                    <small>Semua transaksi keluar, termasuk sumber Kas Iuran.</small>
+                    <div id="kas-pro-expense-list" class="kas-pro-expense-list mt-3"></div>
+                </div>
+            </section>
+
+            <section class="kas-pro-panel mb-5">
+                <div class="flex justify-between items-center gap-3 mb-2">
+                    <div>
+                        <h3>JEJAK AUDIT</h3>
+                        <small>Ringkasan aktivitas transaksi dan aksi lokal terakhir.</small>
+                    </div>
+                    <button type="button" id="kas-clear-audit-btn" class="kas-pro-btn red">BERSIHKAN LOG LOKAL</button>
+                </div>
+                <div id="kas-pro-audit-list" class="kas-pro-audit-list mt-3"></div>
+            </section>
+
+            <div id="kas-pro-expense-confirm" class="kas-pro-confirm" aria-hidden="true">
+                <div class="kas-pro-confirm-card">
+                    <h3>Konfirmasi Pengeluaran</h3>
+                    <div id="kas-pro-confirm-content" class="kas-pro-confirm-grid"></div>
+                    <div class="kas-pro-confirm-actions">
+                        <button type="button" id="kas-pro-cancel-expense" class="kas-pro-btn red">BATAL</button>
+                        <button type="button" id="kas-pro-confirm-expense" class="kas-pro-btn green">LANJUT
+                            VERIFIKASI</button>
+                    </div>
+                </div>
+            </div>
+
             <section id="rincian-uang-iuran-section" class="hidden">
                 <div class="flex items-center justify-between mb-3">
                     <div>
@@ -3066,6 +4053,196 @@
                     // Kas Masuk starts as the active blue tab.
                     if (typeof switchTab === 'function') switchTab('masuk');
                 }, 0);
+            });
+        })();
+    </script>
+
+
+    <script id="kas-pro-runtime">
+        (function () {
+            const AUDIT_KEY = 'kas_peleton_audit_log';
+            let pendingExpenseSubmit = false;
+            let reportTimer = null;
+
+            function safeAudit(action, detail) {
+                try {
+                    const arr = JSON.parse(localStorage.getItem(AUDIT_KEY) || '[]');
+                    arr.unshift({ waktu: new Date().toLocaleString('id-ID'), action, detail });
+                    localStorage.setItem(AUDIT_KEY, JSON.stringify(arr.slice(0, 120)));
+                } catch (e) { console.warn('Audit gagal:', e); }
+            }
+
+            function getRole() { return localStorage.getItem('kas_role') || 'bendahara'; }
+            function setRole(role) {
+                localStorage.setItem('kas_role', role);
+                applyRoleUI();
+                safeAudit('MODE', role === 'viewer' ? 'Viewer diaktifkan' : 'Mode Bendahara diaktifkan');
+                renderAudit();
+            }
+
+            function applyRoleUI() {
+                const role = getRole();
+                document.body.classList.toggle('kas-pro-role-viewer', role === 'viewer');
+                const sel = document.getElementById('kas-role-select');
+                const st = document.getElementById('kas-role-status');
+                if (sel) sel.value = role;
+                if (st) { st.textContent = role === 'viewer' ? 'LIHAT' : 'AKTIF'; st.className = 'status ' + (role === 'viewer' ? 'text-slate-600' : 'text-indigo-600'); }
+            }
+
+            function formatMoney(n) { return 'Rp ' + Number(n || 0).toLocaleString('id-ID'); }
+            function normalizeText(s) { return String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''); }
+
+            function classifyLog(log) {
+                const kat = String(log && log.kategori || '');
+                const low = kat.toLowerCase();
+                if (kat.startsWith('Pengeluaran')) return 'keluar';
+                if (low.includes('uang iuran') || low.startsWith('lainnya')) return 'iuran';
+                if (kat === 'Denda Ga Setoran' || kat.startsWith('Video Vafor')) return 'denda';
+                if (kat === 'Kas Harian') return 'harian';
+                if (kat === 'Kas Mingguan') return 'mingguan';
+                return 'masuk';
+            }
+
+            function renderBars() {
+                const wrap = document.getElementById('kas-pro-bars');
+                if (!wrap) return;
+                const src = (typeof riwayatKas !== 'undefined' ? riwayatKas : []);
+                let masuk = 0, iuran = 0, keluar = 0, denda = 0, harian = 0, mingguan = 0;
+                src.forEach(l => {
+                    const n = Number(l.nominal) || 0; const c = classifyLog(l);
+                    if (l.status !== 'Lunas' && l.status !== 'Selesai') return;
+                    if (c === 'keluar') keluar += n;
+                    else { masuk += n; if (c === 'iuran') iuran += n; if (c === 'denda') denda += n; if (c === 'harian') harian += n; if (c === 'mingguan') mingguan += n; }
+                });
+                const vals = [['Pemasukan', masuk, 'in'], ['Pengeluaran', keluar, 'out'], ['Uang Iuran', iuran, 'in'], ['Denda', denda, 'in'], ['Kas Harian', harian, 'in'], ['Kas Mingguan', mingguan, 'in']];
+                const max = Math.max(1, ...vals.map(v => v[1]));
+                wrap.innerHTML = vals.map(v => `<div class="kas-pro-bar-row"><span>${v[0]}</span><div class="kas-pro-bar-track"><div class="kas-pro-bar-fill ${v[2]}" style="width:${Math.max(2, (v[1] / max) * 100)}%"></div></div><strong>${formatMoney(v[1])}</strong></div>`).join('');
+            }
+
+            function renderExpenses() {
+                const wrap = document.getElementById('kas-pro-expense-list'); const totalEl = document.getElementById('kas-pro-expense-total');
+                if (!wrap) return;
+                const logs = (typeof riwayatKas !== 'undefined' ? riwayatKas : []).filter(l => classifyLog(l) === 'keluar' && (l.status === 'Selesai' || l.status === 'Lunas'));
+                const total = logs.reduce((a, l) => a + (Number(l.nominal) || 0), 0); if (totalEl) totalEl.textContent = formatMoney(total);
+                if (!logs.length) { wrap.innerHTML = '<div class="kas-pro-empty">Belum ada riwayat pengeluaran.</div>'; return; }
+                wrap.innerHTML = [...logs].sort((a, b) => (new Date(b.waktu).getTime() || 0) - (new Date(a.waktu).getTime() || 0)).slice(0, 50).map(l => {
+                    const ket = String(l.keterangan || l.waktu || '-'); const kat = String(l.kategori || '-'); const src = l.sumber_dana || ((ket.match(/Sumber:\s*([^|]+)/i) || [])[1] || 'Kas');
+                    return `<div class="kas-pro-expense-card"><div class="top"><span>${l.nama || '-'}</span><span class="kas-pro-tag">${src}</span></div><div class="mt-1">${kat}</div><div class="text-[10px] text-slate-500 mt-1">${ket}</div><div class="money mt-1">-${formatMoney(l.nominal)}</div></div>`;
+                }).join('');
+            }
+
+            function renderAudit() {
+                const wrap = document.getElementById('kas-pro-audit-list'); if (!wrap) return;
+                let local = []; try { local = JSON.parse(localStorage.getItem(AUDIT_KEY) || '[]'); } catch (e) { }
+                const trans = (typeof riwayatKas !== 'undefined' ? riwayatKas : []).slice(0, 25).map(l => ({
+                    waktu: l.waktu || '-', action: classifyLog(l) === 'keluar' ? 'PENGELUARAN' : 'TRANSAKSI', detail: `${l.nama || '-'} • ${l.kategori || '-'} • ${formatMoney(l.nominal)}`
+                }));
+                const merged = [...local, ...trans].slice(0, 60);
+                wrap.innerHTML = merged.length ? merged.map(x => `<div class="kas-pro-audit-card"><div class="top"><span>${x.action}</span><span>${x.waktu}</span></div><div class="mt-1">${x.detail}</div></div>`).join('') : '<div class="kas-pro-empty">Belum ada jejak audit.</div>';
+            }
+
+            function renderWarning() {
+                const el = document.getElementById('kas-pro-warning'); if (!el) return;
+                const src = (typeof riwayatKas !== 'undefined' ? riwayatKas : []);
+                const balances = {};
+                src.forEach(l => {
+                    const k = String(l.kategori || '');
+                    if ((k.startsWith('Uang Iuran - ') || k.startsWith('Lainnya - ')) && (l.status === 'Lunas' || l.status === 'Selesai')) {
+                        const name = k.replace(/^Uang Iuran - |^Lainnya - /, '').trim();
+                        balances[name] = (balances[name] || 0) + (Number(l.nominal) || 0);
+                    }
+                });
+                src.filter(l => classifyLog(l) === 'keluar' && (l.status === 'Selesai' || l.status === 'Lunas')).forEach(l => {
+                    const m = String(l.keterangan || '').match(/Iuran:\s*([^|]+)/i); if (m) { const name = m[1].trim(); balances[name] = (balances[name] || 0) - (Number(l.nominal) || 0); }
+                });
+                const low = []; Object.entries(balances).forEach(([name, v]) => { if (v > 0 && v <= 50000) low.push(`${name}: ${formatMoney(v)}`); });
+                const saldoEl = document.getElementById('stat-saldo-utama'); const saldo = parseInt(String(saldoEl?.textContent || '').replace(/[^0-9]/g, '')) || 0; if (saldo > 0 && saldo <= 50000) low.push(`Saldo utama: ${formatMoney(saldo)}`);
+                if (low.length) { el.style.display = 'block'; el.innerHTML = `⚠️ <strong>Perhatian:</strong> saldo kecil terdeteksi → ${low.join(' &nbsp;•&nbsp; ')}`; } else { el.style.display = 'none'; el.innerHTML = ''; }
+            }
+
+            function refreshReports() { renderBars(); renderExpenses(); renderAudit(); renderWarning(); applyLogFilters(); }
+
+            function applyLogFilters() {
+                const wrap = document.getElementById('log-container'); if (!wrap) return;
+                const q = normalizeText(document.getElementById('kas-search')?.value || '');
+                const f = document.getElementById('kas-filter')?.value || 'semua';
+                [...wrap.children].forEach(card => {
+                    const txt = normalizeText(card.textContent || '');
+                    let show = !q || txt.includes(q);
+                    if (show && f !== 'semua') {
+                        if (f === 'keluar') show = txt.includes('uang keluar') || txt.includes('pengeluaran');
+                        else if (f === 'iuran') show = txt.includes('uang iuran') || txt.includes('iuran');
+                        else if (f === 'denda') show = txt.includes('denda') || txt.includes('video vafor');
+                        else if (f === 'harian') show = txt.includes('kas harian');
+                        else if (f === 'mingguan') show = txt.includes('kas mingguan');
+                        else if (f === 'masuk') show = !txt.includes('uang keluar') && !txt.includes('pengeluaran');
+                    }
+                    card.style.display = show ? '' : 'none';
+                });
+            }
+
+            function exportCsv() {
+                const rows = (typeof riwayatKas !== 'undefined' ? riwayatKas : []);
+                const esc = v => '"' + String(v ?? '').replace(/"/g, '""') + '"';
+                const head = ['Waktu', 'Nama', 'Kategori', 'Nominal', 'Keterangan', 'Status', 'Bendahara', 'Sumber Dana'];
+                const data = [head, ...rows.map(l => [l.waktu, l.nama, l.kategori, l.nominal, l.keterangan, l.status, l.bendahara, l.sumber_dana])];
+                const csv = '\ufeff' + data.map(r => r.map(esc).join(',')).join('\r\n');
+                const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'laporan_kas_peleton.csv'; a.click(); URL.revokeObjectURL(a.href); safeAudit('EXPORT', 'Laporan CSV diunduh'); renderAudit();
+            }
+
+            function backupJson() {
+                const payload = { dibuat: new Date().toISOString(), anggota: (typeof masterAnggota !== 'undefined' ? masterAnggota : []), riwayat: (typeof riwayatKas !== 'undefined' ? riwayatKas : []), audit: JSON.parse(localStorage.getItem(AUDIT_KEY) || '[]') };
+                const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'backup_kas_peleton.json'; a.click(); URL.revokeObjectURL(a.href); safeAudit('BACKUP', 'Snapshot JSON diunduh'); renderAudit();
+            }
+
+            function showExpenseConfirm() {
+                const pj = document.getElementById('keluar-pj')?.value || '-'; const src = document.getElementById('keluar-sumber')?.value || '-'; const iuran = document.getElementById('keluar-iuran')?.value || '-'; const kat = document.getElementById('keluar-kategori')?.value || '-'; const nom = Number(document.getElementById('keluar-nominal')?.value) || 0; const ket = document.getElementById('keluar-keperluan')?.value.trim() || '-';
+                if (!pj || nom <= 0 || ket === '-') { return; }
+                const card = document.getElementById('kas-pro-expense-confirm'); const content = document.getElementById('kas-pro-confirm-content');
+                const rows = [['PJ', pj], ['Sumber Dana', src], ...(src === 'Uang Iuran' ? [['Jenis Iuran', iuran]] : []), ['Kategori', kat], ['Nominal', formatMoney(nom)], ['Keperluan', ket]];
+                content.innerHTML = rows.map(r => `<div class="kas-pro-confirm-row"><span>${r[0]}</span><strong>${r[1]}</strong></div>`).join('');
+                card.classList.add('show'); card.setAttribute('aria-hidden', 'false'); pendingExpenseSubmit = false;
+            }
+
+            function closeExpenseConfirm() { const card = document.getElementById('kas-pro-expense-confirm'); if (card) { card.classList.remove('show'); card.setAttribute('aria-hidden', 'true'); } }
+
+            function confirmExpenseThenSubmit() { closeExpenseConfirm(); const form = document.getElementById('form-pengeluaran'); const btn = form?.querySelector('button[type="submit"]'); if (btn) { pendingExpenseSubmit = true; safeAudit('KONFIRMASI', 'Pengeluaran diteruskan ke PIN bendahara'); btn.click(); } }
+
+            function bindExpenseConfirm() {
+                const form = document.getElementById('form-pengeluaran'); const btn = form?.querySelector('button[type="submit"]'); if (!form || !btn || btn.__kasProBound) return; btn.__kasProBound = true;
+                btn.addEventListener('click', function (e) { if (pendingExpenseSubmit) { pendingExpenseSubmit = false; return; } e.preventDefault(); e.stopImmediatePropagation(); showExpenseConfirm(); }, true);
+                document.getElementById('kas-pro-cancel-expense')?.addEventListener('click', function () { closeExpenseConfirm(); safeAudit('BATAL', 'Konfirmasi pengeluaran dibatalkan'); renderAudit(); });
+                document.getElementById('kas-pro-confirm-expense')?.addEventListener('click', confirmExpenseThenSubmit);
+            }
+
+            function bindToolbar() {
+                document.getElementById('kas-search')?.addEventListener('input', applyLogFilters);
+                document.getElementById('kas-filter')?.addEventListener('change', applyLogFilters);
+                document.getElementById('kas-sort')?.addEventListener('change', function () {
+                    const wrap = document.getElementById('log-container'); if (!wrap) return;
+                    const kids = [...wrap.children]; const mode = this.value;
+                    kids.sort((a, b) => { const ta = Date.parse(a.textContent) || 0, tb = Date.parse(b.textContent) || 0; if (mode === 'largest') { const na = parseInt((a.textContent.match(/Rp\s*[0-9.]+/) || ['0'])[0].replace(/[^0-9]/g, '')) || 0; const nb = parseInt((b.textContent.match(/Rp\s*[0-9.]+/) || ['0'])[0].replace(/[^0-9]/g, '')) || 0; return nb - na; } return mode === 'oldest' ? ta - tb : tb - ta; }); kids.forEach(k => wrap.appendChild(k)); applyLogFilters();
+                });
+                document.getElementById('kas-export-btn')?.addEventListener('click', exportCsv);
+                document.getElementById('kas-backup-btn')?.addEventListener('click', backupJson);
+                document.getElementById('kas-refresh-report-btn')?.addEventListener('click', refreshReports);
+                document.getElementById('kas-clear-audit-btn')?.addEventListener('click', function () { if (confirm('Hapus log audit lokal di perangkat ini?')) { localStorage.removeItem(AUDIT_KEY); safeAudit('AUDIT', 'Log audit lokal dibersihkan'); renderAudit(); } });
+                document.getElementById('kas-role-select')?.addEventListener('change', function () { const target = this.value; if (target === 'viewer') { setRole('viewer'); return; } panggilPinModal(function () { setRole('bendahara'); }); });
+                bindExpenseConfirm(); applyRoleUI();
+            }
+
+            function hookRender() {
+                if (window.__kasProWrapped) return; window.__kasProWrapped = true;
+                const base = window.renderAplikasi;
+                if (typeof base === 'function') {
+                    window.renderAplikasi = function () { base.apply(this, arguments); refreshReports(); bindExpenseConfirm(); applyRoleUI(); };
+                }
+            }
+
+            document.addEventListener('DOMContentLoaded', function () {
+                hookRender(); bindToolbar(); refreshReports();
+                setTimeout(bindToolbar, 200); setTimeout(refreshReports, 400);
+                safeAudit('BUKA', 'Dashboard dibuka'); renderAudit();
             });
         })();
     </script>
