@@ -1515,25 +1515,44 @@
         });
 
         async function muatDataDariCloud() {
-            tampilkanLoading(true);
-            try {
-                if (!navigator.onLine) {
-                    let cacheData = localStorage.getItem('kas_peleton_cache');
-                    if (cacheData) {
-                        let data = JSON.parse(cacheData);
-                        masterAnggota = data.anggota || [];
-                        riwayatKas = data.riwayat || [];
-                        renderAplikasi();
-                        aturTampilanTanggalSistem();
-                    }
-                    tampilkanLoading(false);
-                    return;
-                }
+            // Tampilkan cache secepat mungkin. Cloud disinkronkan di belakang layar
+            // supaya UI tidak menunggu Apps Script selesai merespons.
+            let cacheData = localStorage.getItem('kas_peleton_cache');
+            let sudahAdaCache = false;
 
-                let response = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ aksi: 'ambilData' }) });
+            if (cacheData) {
+                try {
+                    let dataCache = JSON.parse(cacheData);
+                    masterAnggota = dataCache.anggota || [];
+                    riwayatKas = dataCache.riwayat || [];
+                    renderAplikasi();
+                    aturTampilanTanggalSistem();
+                    sudahAdaCache = true;
+                } catch (e) {
+                    localStorage.removeItem('kas_peleton_cache');
+                }
+            }
+
+            if (!navigator.onLine) {
+                tampilkanLoading(false);
+                return;
+            }
+
+            // Loading overlay hanya muncul kalau memang belum punya data lokal.
+            tampilkanLoading(!sudahAdaCache);
+
+            const controller = new AbortController();
+            const timer = setTimeout(() => controller.abort(), 8000);
+
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ aksi: 'ambilData' }),
+                    signal: controller.signal
+                });
                 if (!response.ok) throw new Error(`Server HTTP: ${response.status}`);
 
-                let data = await response.json();
+                const data = await response.json();
                 localStorage.setItem('kas_peleton_cache', JSON.stringify(data));
 
                 masterAnggota = data.anggota || [];
@@ -1541,19 +1560,20 @@
                 renderAplikasi();
                 aturTampilanTanggalSistem();
             } catch (err) {
-                let cacheData = localStorage.getItem('kas_peleton_cache');
-                if (cacheData) {
-                    let data = JSON.parse(cacheData);
-                    masterAnggota = data.anggota || [];
-                    riwayatKas = data.riwayat || [];
-                    renderAplikasi();
-                    aturTampilanTanggalSistem();
-                    alert(`⚠️ Gagal terhubung ke server (${err.message}). Menggunakan data offline.`);
+                // Kalau cache sudah tampil, jangan mengganggu user dengan alert.
+                // Data cloud akan dicoba lagi saat refresh berikutnya.
+                if (!sudahAdaCache) {
+                    const pesan = err && err.name === 'AbortError'
+                        ? 'Server terlalu lama merespons (timeout 8 detik).'
+                        : (err ? err.message : 'Koneksi gagal.');
+                    alert(`⚠️ Gagal mengambil data cloud.\n\n${pesan}`);
                 } else {
-                    alert(`❌ Gagal Mengambil Data!\n\nDetail Eror: ${err.message}`);
+                    console.warn('Sinkronisasi cloud gagal, tetap menggunakan cache:', err);
                 }
+            } finally {
+                clearTimeout(timer);
+                tampilkanLoading(false);
             }
-            tampilkanLoading(false);
         }
 
         function renderAplikasi() {
